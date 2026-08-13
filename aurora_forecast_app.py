@@ -1045,7 +1045,6 @@ forecast = get_space_weather_forecast(forecast_date)
 
 if forecast is None:
     st.warning("Forecast data unavailable for the selected date. Please try another date.")
-    st.stop()
 
 # =====================================================
 # Open-Meteo API
@@ -1102,12 +1101,15 @@ prediction = model.predict(model_input)[0]
 # Aurora Forecast
 # =====================================================
 
-result = estimate_aurora_probability(
-    forecast,
-    environment,
-    sun_data,
-    latitude
-)
+result = None
+
+if forecast is not None:
+    result = estimate_aurora_probability(
+        forecast,
+        environment,
+        sun_data,
+        latitude
+    )
 
 # =====================================================
 # Results
@@ -1117,76 +1119,72 @@ result = estimate_aurora_probability(
 # Aurora Observation Probability
 # -----------------------------------------------------
 
-st.markdown(
-    f'<div class="forecast-eyebrow">YOUR FORECAST · {forecast_date.strftime("%d %B %Y").upper()}</div>',
-    unsafe_allow_html=True
-)
+if result is not None:
 
-st.subheader("Estimated chance of observing the Northern Lights")
-
-st.metric(
-    label="Estimated Observation Chance",
-    value=f"{result['probability']}%"
-)
-
-st.caption(
-    "Estimation based on forecast geomagnetic activity (Ap), "
-    "location, sky darkness, cloud cover and visibility."
-)
-
-if result["best_time"] != "Weather estimate unavailable":
-    st.metric(
-        label="Best Viewing Time",
-        value=result["best_time"]
+    st.markdown(
+        f'<div class="forecast-eyebrow">YOUR FORECAST · {forecast_date.strftime("%d %B %Y").upper()}</div>',
+        unsafe_allow_html=True
     )
 
-st.markdown("---")
+    st.subheader("Estimated chance of observing the Northern Lights")
 
-# -----------------------------------------------------
-# Forecast Conditions
-# -----------------------------------------------------
+    st.metric(
+        label="Estimated Observation Chance",
+        value=f"{result['probability']}%"
+    )
 
-st.subheader("Forecast conditions")
+    st.caption(
+        "Estimation based on forecast geomagnetic activity (Ap), "
+        "location, sky darkness, cloud cover and visibility."
+    )
 
-col1, col2, col3 = st.columns(3)
+    if result["best_time"] != "Weather estimate unavailable":
+        st.metric(
+            label="Best Viewing Time",
+            value=result["best_time"]
+        )
 
-with col1:
-    st.markdown(f"""
-    <div class="condition-card">
-        <div class="condition-title">🌑 SKY DARKNESS</div>
-        <div class="condition-value">{result['darkness']}</div>
-        <div class="condition-text">
-            Estimated natural sky darkness based on sunrise, sunset and twilight times.
+    st.markdown("---")
+
+    st.subheader("Forecast conditions")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown(f"""
+        <div class="condition-card">
+            <div class="condition-title">🌑 SKY DARKNESS</div>
+            <div class="condition-value">{result['darkness']}</div>
+            <div class="condition-text">
+                Estimated natural sky darkness based on sunrise, sunset and twilight times.
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-cloud_title = (
-    "☁️ CLOUD COVER"
-    if environment["weather_source"] == "forecast"
-    else "☁️ TYPICAL CLOUD COVER"
-)
+    cloud_title = (
+        "☁️ CLOUD COVER"
+        if environment["weather_source"] == "forecast"
+        else "☁️ TYPICAL CLOUD COVER"
+    )
 
-
-with col2:
-    st.markdown(f"""
-    <div class="condition-card">
-        <div class="condition-title">{cloud_title}</div>
-        <div class="condition-value">{environment['cloud_cover']:.0f}%</div>
-        <div class="condition-text">
-            {cloud_comment(environment["cloud_cover"])}
+    with col2:
+        st.markdown(f"""
+        <div class="condition-card">
+            <div class="condition-title">{cloud_title}</div>
+            <div class="condition-value">{environment['cloud_cover']:.0f}%</div>
+            <div class="condition-text">
+                {cloud_comment(environment["cloud_cover"])}
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-clarity_text = (
-    f"Meteorological visibility: {environment['visibility']/1000:.1f} km."
-    if not pd.isna(environment["visibility"])
-    else "Estimated from typical cloud cover conditions."
-)
+    clarity_text = (
+        f"Meteorological visibility: {environment['visibility']/1000:.1f} km."
+        if not pd.isna(environment["visibility"])
+        else "Estimated from typical cloud cover conditions."
+    )
 
-
-with col3:
+    with col3:
 
         clarity_title = (
             "👁 SKY CLARITY"
@@ -1204,31 +1202,31 @@ with col3:
         </div>
         """, unsafe_allow_html=True)
 
-col4, col5 = st.columns(2)
+    col4, col5 = st.columns(2)
 
-with col4:
-    st.markdown(f"""
-    <div class="condition-card">
-        <div class="condition-title">🧲 GEOMAGNETIC ACTIVITY</div>
-        <div class="condition-value">{result['geomagnetic_activity']}</div>
-        <div class="condition-text">
-            Measures the expected disturbance of Earth's magnetic field.
+    with col4:
+        st.markdown(f"""
+        <div class="condition-card">
+            <div class="condition-title">🧲 GEOMAGNETIC ACTIVITY</div>
+            <div class="condition-value">{result['geomagnetic_activity']}</div>
+            <div class="condition-text">
+                Measures the expected disturbance of Earth's magnetic field.
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-with col5:
-    st.markdown(f"""
-    <div class="condition-card">
-        <div class="condition-title">☀️ SOLAR ACTIVITY</div>
-        <div class="condition-value">{result['solar_activity']}</div>
-        <div class="condition-text">
-            Represents the overall level of solar activity.
+    with col5:
+        st.markdown(f"""
+        <div class="condition-card">
+            <div class="condition-title">☀️ SOLAR ACTIVITY</div>
+            <div class="condition-value">{result['solar_activity']}</div>
+            <div class="condition-text">
+                Represents the overall level of solar activity.
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-st.markdown("---")
+    st.markdown("---")
 
 # -----------------------------------------------------
 # Today's AI Aurora Forecast
@@ -1277,107 +1275,92 @@ if aurora_df is None:
 else:
     fig = go.Figure()
 
-    # Aurora oval
-    # ...TODO el código del mapa...
-
-# Aurora oval
-fig.add_trace(
-    go.Scattergeo(
-        lon=aurora_df["longitude"],
-        lat=aurora_df["latitude"],
-        mode="markers",
-        marker=dict(
-            size=4,
-            color=aurora_df["intensity"],
-            colorscale=[
-                [0.0, "#123c35"],
-                [0.4, "#3f8f7e"],
-                [0.7, "#79d8c1"],
-                [1.0, "#d7fff4"]
-            ],
-            cmin=5,
-            cmax=max(aurora_df["intensity"].max(), 10),
-            opacity=0.75,
-            colorbar=dict(
-                title="Aurora<br>Intensity",
-                thickness=12
-            )
-        ),
-        hovertemplate=(
-            "Aurora intensity: %{marker.color}<extra></extra>"
-        ),
-        showlegend=False
+    fig.add_trace(
+        go.Scattergeo(
+            lon=aurora_df["longitude"],
+            lat=aurora_df["latitude"],
+            mode="markers",
+            marker=dict(
+                size=4,
+                color=aurora_df["intensity"],
+                colorscale=[
+                    [0.0, "#123c35"],
+                    [0.4, "#3f8f7e"],
+                    [0.7, "#79d8c1"],
+                    [1.0, "#d7fff4"]
+                ],
+                cmin=5,
+                cmax=max(aurora_df["intensity"].max(), 10),
+                opacity=0.75,
+                colorbar=dict(
+                    title="Aurora<br>Intensity",
+                    thickness=12
+                )
+            ),
+            hovertemplate="Aurora intensity: %{marker.color}<extra></extra>",
+            showlegend=False
+        )
     )
-)
 
-# Selected destination
-fig.add_trace(
-    go.Scattergeo(
-        lon=[longitude],
-        lat=[latitude],
-        mode="markers+text",
-        marker=dict(
-            size=11,
-            color="white",
-            line=dict(
-                color="#79d8c1",
-                width=3
-            )
-        ),
-        text=[coordinates["name"]],
-        textposition="top center",
-        hovertemplate=(
-            f"<b>{coordinates['name']}, "
-            f"{coordinates['country']}</b><extra></extra>"
-        ),
-        showlegend=False
+    fig.add_trace(
+        go.Scattergeo(
+            lon=[longitude],
+            lat=[latitude],
+            mode="markers+text",
+            marker=dict(
+                size=11,
+                color="white",
+                line=dict(
+                    color="#79d8c1",
+                    width=3
+                )
+            ),
+            text=[coordinates["name"]],
+            textposition="top center",
+            hovertemplate=(
+                f"<b>{coordinates['name']}, "
+                f"{coordinates['country']}</b><extra></extra>"
+            ),
+            showlegend=False
+        )
     )
-)
 
-fig.update_geos(
-    projection_type="orthographic",
+    fig.update_geos(
+        projection_type="orthographic",
+        projection_rotation=dict(
+            lon=-longitude,
+            lat=-latitude
+        ),
+        showland=True,
+        landcolor="#101b19",
+        showocean=True,
+        oceancolor="#07110f",
+        showlakes=True,
+        lakecolor="#07110f",
+        showcountries=True,
+        countrycolor="#425854",
+        coastlinecolor="#536965",
+        bgcolor="#07110f"
+    )
 
-    # Rotate globe toward selected destination
-    projection_rotation=dict(
-        lon=-longitude,
-        lat=-latitude
-    ),
+    fig.update_layout(
+        height=600,
+        margin=dict(l=0, r=0, t=10, b=0),
+        paper_bgcolor="#07110f",
+        plot_bgcolor="#07110f"
+    )
 
-    showland=True,
-    landcolor="#101b19",
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"displayModeBar": False}
+    )
 
-    showocean=True,
-    oceancolor="#07110f",
-
-    showlakes=True,
-    lakecolor="#07110f",
-
-    showcountries=True,
-    countrycolor="#425854",
-
-    coastlinecolor="#536965",
-
-    bgcolor="#07110f"
-)
-
-fig.update_layout(
-    height=600,
-    margin=dict(l=0, r=0, t=10, b=0),
-    paper_bgcolor="#07110f",
-    plot_bgcolor="#07110f"
-)
-
-st.plotly_chart(
-    fig,
-    use_container_width=True,
-    config={"displayModeBar": False}
-)
-
-st.caption(
-    f"NOAA short-term aurora forecast centered on "
-    f"{coordinates['name']}. Brighter areas indicate stronger "
-    f"expected auroral activity. The white marker shows your destination."
-)
+    st.caption(
+        f"NOAA short-term aurora forecast centered on "
+        f"{coordinates['name']}. Brighter areas indicate stronger "
+        f"expected auroral activity. The white marker shows your destination."
+    )
 
 
 # =====================================================
