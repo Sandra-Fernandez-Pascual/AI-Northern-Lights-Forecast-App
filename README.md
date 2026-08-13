@@ -1,177 +1,348 @@
 # 🌌 AI-Powered Northern Lights Forecast
 
-An end-to-end data science project that combines Machine Learning, real-time space weather data and environmental forecasts to help users identify favourable conditions for observing the Northern Lights.
+**An end-to-end data science project that combines Machine Learning, real-time space weather data and environmental forecasts to help users identify favourable conditions for observing the Northern Lights.**
 
 🔗 **Live App:** https://northern-lights-forecast.streamlit.app  
 📋 **Project Planning:** https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack
 
 ---
 
-## 🎯 Research Question
+# 🎯 Project Goal
 
-> **Can data help users identify the best conditions to observe the Northern Lights?**
+The goal of this project was not simply to build a Machine Learning model.
 
-People planning to see the Northern Lights often need to consult multiple sources: space weather, geomagnetic activity, weather forecasts and darkness conditions.
+It was to create a complete **end-to-end data science application** that transforms complex space-weather information into something useful and understandable for non-experts.
 
-This project brings those factors together into a single application designed to make that information easier to understand and use.
+Research Question > **Can data help users identify favourable conditions for observing the Northern Lights?**
 
----
-
-## 🌞 From the Sun to the Northern Lights
-
-The Sun constantly releases charged particles known as the **solar wind**.
-
-When solar wind reaches Earth, it interacts with Earth's magnetic field. Strong disturbances can produce geomagnetic storms, whose intensity can be measured using the **Dst (Disturbance Storm Time) index**.
-
-In simplified form:
-
-**Solar activity → Solar wind → Geomagnetic disturbance (Dst) → Aurora potential**
-
-However, an aurora being present does not necessarily mean that it can be observed from a particular location.
-
-Visibility also depends on factors such as:
-
-- 📍 Location
-- 🌙 Sky darkness
-- ☁️ Cloud cover
-- 👁️ Atmospheric visibility
-
-This distinction is the basis of the application.
+This project explores that question by connecting solar activity, Earth's geomagnetic response, environmental conditions and Machine Learning in one interactive application.
 
 ---
 
-## 🤖 Machine Learning Model
+## 🌠 About the Project
 
-The Machine Learning component predicts the **Dst index**, a continuous numerical measure of geomagnetic storm intensity.
+Seeing the Northern Lights depends on much more than simply knowing whether solar activity is high.
 
-### Features
+Travelers often need to check several different sources:
 
-Historical solar wind measurements including:
+- ☀️ Solar activity
+- 🌍 Geomagnetic conditions
+- ☁️ Weather
+- 🌙 Darkness
+- 📍 Geographic location
+
+This project brings those factors together into a single Streamlit application designed to answer two different questions:
+
+> **What are the geomagnetic conditions right now?**
+
+and
+
+> **What are my chances of observing the Northern Lights at a selected location and date?**
+
+The application therefore combines **Machine Learning for current geomagnetic conditions** with a separate **rule-based observation forecast for future planning**.
+
+---
+
+# ☀️ How Does an Aurora Happen?
+
+## 🌞 Step 1 — The Sun
+
+The Sun constantly releases charged particles into space.
+
+This is called the **solar wind**.
+
+Normally, this activity is relatively calm. But sometimes the Sun releases stronger and faster streams of particles toward Earth.
+
+To understand these conditions, we measure variables such as:
 
 - Solar wind speed
 - Density
 - Temperature
 - Magnetic field components (Bx, By, Bz)
+
+Together, these variables describe **what the Sun is sending toward Earth**.
+
+---
+
+## 🌍 Step 2 — Earth Reacts
+
+When those particles reach Earth, they interact with Earth's magnetic field.
+
+If the solar wind is weak:
+
+➡️ Earth's magnetic field remains relatively calm.
+
+If the interaction becomes stronger:
+
+➡️ Earth's magnetic field becomes disturbed.
+
+One way scientists measure this disturbance is the **Dst (Disturbance Storm Time) Index**.
+
+This gives us the simplified relationship:
+
+**Solar wind → Earth's geomagnetic response (Dst)**
+
+This is the relationship learned by the Machine Learning model.
+
+---
+
+## 🌌 Step 3 — Northern Lights
+
+During geomagnetic disturbances, charged particles can travel along Earth's magnetic field and interact with gases in the upper atmosphere.
+
+Those interactions produce light.
+
+✨ **That's an aurora.**
+
+In simplified form:
+
+```text
+☀️ Solar activity
+        ↓
+🌬️ Solar wind
+        ↓
+🌍 Geomagnetic disturbance (Dst)
+        ↓
+🌌 Aurora becomes possible
+```
+
+---
+
+## 📱 Step 4 — Seeing an Aurora Is Another Story
+
+Even when geomagnetic activity is strong enough for auroras to occur, that does **not** mean an observer will necessarily see them.
+
+Good viewing conditions also require:
+
+- 🌙 Sufficient darkness
+- ☁️ Clear skies
+- 👁️ Good visibility
+- 📍 A favourable geographic location
+
+For this reason, the application separates **geomagnetic activity** from **observation conditions**.
+
+The Machine Learning model answers:
+
+> **"How disturbed is Earth's magnetic field right now?"**
+
+For future observation planning, the application separately asks:
+
+> **"Given the expected geomagnetic activity, location, darkness and weather conditions, what is the estimated chance of observing the Northern Lights?"**
+
+---
+
+# 🤖 Machine Learning — Today's AI Aurora Estimate
+
+The Machine Learning component estimates **current geomagnetic storm intensity**.
+
+A **Random Forest regression model** predicts the current **Dst Index** using real-time space weather conditions.
+
+### Model inputs include:
+
+- Solar wind speed
+- Solar wind density
+- Solar wind temperature
+- Magnetic field components
 - Smoothed sunspot number
 
 ### Target
 
-- **Dst (Disturbance Storm Time) Index**
+**Dst Index**
 
-Because Dst is a continuous numerical variable, this is a **regression problem**.
+The predicted Dst value is translated into a simple aurora activity estimate so that users do not need specialist knowledge to interpret the result.
 
-Several regression models were trained, evaluated and compared before selecting and tuning the final **Random Forest** model.
-
-The final model is used in the application to generate **Today's AI Aurora Estimate** from current NOAA space weather measurements.
+```text
+Real-time NOAA data
+        ↓
+Random Forest model
+        ↓
+Predicted Dst Index
+        ↓
+Today's AI Aurora Estimate
+```
 
 ---
 
-## 🔮 Future Observation Forecast
+# 🔭 Future Aurora Observation Forecast
 
-The Machine Learning model is used for **current conditions**, not future dates.
+The future observation forecast is **separate from the Machine Learning model**.
 
-The original project idea was to combine the ML model directly with forecast APIs. However, the solar wind and magnetic field variables required by the trained model are difficult to obtain as forecast data, particularly across longer time horizons.
+The ML model requires solar wind and magnetic-field variables that are available in real time but are difficult to obtain reliably as forecasts across longer time horizons.
 
-For this reason, future observation chances are calculated separately using:
+For future dates, the application therefore uses:
 
-- 🧲 NOAA forecast **Ap index**
-- 📍 Latitude
+- 🌍 NOAA forecast geomagnetic activity (Ap)
+- 📍 Geographic latitude
 - 🌙 Sky darkness
 - ☁️ Cloud cover
 - 👁️ Visibility
 
-This allows the application to provide an **Estimated Observation Chance** for a selected location and date without presenting unavailable ML inputs as future predictions.
+These factors are combined in a **rule-based calculation** to estimate how favourable the conditions are for observing the Northern Lights.
+
+The calculation separates:
+
+**Aurora potential**
+
+```text
+Geomagnetic activity × Geographic latitude
+```
+
+from:
+
+**Observation conditions**
+
+```text
+Darkness × Cloud conditions × Visibility
+```
+
+The result is presented as an **Estimated Observation Chance from 0–100%**.
 
 ---
 
-## 📱 Streamlit Application
+# 🗺️ Interactive Auroral Oval
 
-The application contains three main components:
+The application also displays NOAA's auroral oval forecast on an interactive map.
 
-### 1. 🤖 Today's AI Aurora Estimate
+This provides a visual representation of where auroral activity is expected over approximately the next **30–40 minutes**.
 
-Real-time NOAA solar wind and magnetic field measurements are passed to the trained Random Forest model.
+Together, the application provides three complementary perspectives:
 
-**Real-time NOAA data → ML model → Predicted Dst → Current geomagnetic estimate**
-
-### 2. 🌌 Estimated Observation Chance
-
-Users select a destination and forecast date.
-
-The application combines forecast geomagnetic activity with geographical and atmospheric conditions to estimate how favourable the conditions are for observing the Northern Lights.
-
-**Location + Date → Ap + Darkness + Weather + Latitude → Estimated Observation Chance**
-
-### 3. 🗺️ Interactive Auroral Oval
-
-The application retrieves NOAA's auroral oval forecast and displays expected auroral activity for approximately the next **30–40 minutes** on an interactive map.
+```text
+🤖 Today's AI Aurora Estimate
+          +
+🌌 Estimated Observation Chance
+          +
+🗺️ NOAA Auroral Oval
+```
 
 ---
 
-## 📊 Historical Data
+# ❤️ Why This Approach Is Scientifically Coherent
+
+A tempting approach would be to train a model to predict:
+
+> **Aurora: Yes / No**
+
+However, that would require reliable historical labels indicating whether an aurora was actually visible from a specific place and time.
+
+Instead, this project predicts a **real physical quantity: the Dst Index**, which describes geomagnetic storm intensity.
+
+The Machine Learning model therefore focuses on the physical relationship present in the available historical data:
+
+```text
+☀️ What is the Sun doing?
+        ↓
+🌍 How is Earth responding?
+        ↓
+🤖 ML → Dst
+```
+
+The application then treats future observation planning as a separate problem:
+
+```text
+🌍 What geomagnetic activity is expected?
+        ↓
+NOAA forecast → Ap
+        ↓
+📍 Where is the observer?
+🌙 Will it be dark?
+☁️ Will the sky be clear?
+        ↓
+🌌 Estimated Observation Chance
+```
+
+This keeps the Machine Learning task aligned with the available scientific data while still producing a practical tool for aurora observation planning.
+
+---
+
+# 📊 Data
 
 The Machine Learning workflow uses three historical datasets:
 
-- **Solar Wind** — minute-level solar wind and magnetic field measurements.
-- **Labels** — hourly Dst values used as the ML target.
-- **Sunspots** — monthly smoothed sunspot numbers providing longer-term solar activity context.
+### 🌬️ Solar Wind
+Minute-level measurements including:
 
-Solar wind measurements were aggregated to hourly resolution so they could be aligned with the hourly Dst target.
+- Speed
+- Density
+- Temperature
+- Magnetic field components
+
+### 🌍 Dst Labels
+Hourly **Dst Index** measurements used as the Machine Learning target.
+
+### ☀️ Sunspots
+Monthly smoothed sunspot numbers providing longer-term solar activity context.
 
 ### Dataset Source
 
-Historical data:
-
-**NASA and NOAA Satellites Solar-Wind Dataset — Kaggle**  
+**NASA Space Weather Data via Kaggle:**  
 https://www.kaggle.com/datasets/arashnic/soalr-wind/data
 
-The large raw datasets are not stored directly in this repository and can instead be obtained from the original source above.
+### Scientific Background
 
----
-
-## 📡 APIs
-
-The application integrates several external data sources:
-
-- **NOAA Real-Time Space Weather Data** — solar wind and magnetic field measurements used by the ML model.
-- **NOAA Solar Cycle Forecast** — smoothed sunspot number used by the ML model.
-- **NOAA 45-Day Forecast** — Ap and F10.7 solar activity forecasts.
-- **NOAA Aurora Forecast** — auroral oval forecast for the next ~30–40 minutes.
-- **Open-Meteo Forecast API** — cloud cover and visibility.
-- **Open-Meteo Historical Weather API** — typical atmospheric conditions for longer-range dates.
-- **Open-Meteo Geocoding API** — converts destinations into geographical coordinates.
-- **Sunrise-Sunset API** — astronomical twilight information used to estimate sky darkness.
-
----
-
-## 📚 Scientific Background
-
-The modelling approach was informed by:
-
-**MagNet: Model the Geomagnetic Field — DrivenData**  
+**NOAA Magnetic Forecasting Competition — DrivenData:**  
 https://www.drivendata.org/competitions/73/noaa-magnetic-forecasting/page/280/
 
-The challenge explores predicting the **Dst index from solar wind measurements**, providing scientific background for the relationship modelled in this project.
+---
+
+# 🌐 APIs
+
+The deployed application integrates several external data sources:
+
+| API | Purpose |
+|---|---|
+| NOAA Real-Time Space Weather | Solar wind and magnetic field measurements |
+| NOAA Solar Cycle | Smoothed sunspot number |
+| NOAA 45-Day Forecast | Forecast geomagnetic activity |
+| NOAA Aurora Forecast | Auroral oval visualization |
+| Open-Meteo Forecast | Cloud cover and visibility |
+| Open-Meteo Historical Weather | Typical conditions for longer-range dates |
+| Open-Meteo Geocoding | Destination → coordinates |
+| Sunrise-Sunset API | Astronomical twilight and darkness |
 
 ---
 
-## 🔄 Project Workflow
+# 🔬 Data Science Workflow
 
-### Machine Learning
+```text
+Historical datasets
+        ↓
+Data Cleaning & Integration
+        ↓
+Exploratory Data Analysis
+        ↓
+Feature Selection & Preprocessing
+        ↓
+Machine Learning
+        ↓
+Model Comparison
+        ↓
+Hyperparameter Tuning
+        ↓
+Random Forest
+        ↓
+Real-time API Integration
+        ↓
+Streamlit Application
+```
 
-**Historical Data → Cleaning → Integration → EDA → Preprocessing → Model Training → Model Comparison → Hyperparameter Tuning → Random Forest**
+The project includes:
 
-### Application
-
-**Real-Time NOAA Data → Random Forest → Predicted Dst → Today's AI Aurora Estimate**
-
-**Selected Location + Date → Space Weather Forecast + Weather + Darkness + Geolocation → Estimated Observation Chance**
-
-**NOAA Auroral Oval → Interactive Map**
+- Data cleaning
+- Exploratory Data Analysis
+- Feature selection
+- Train-test split
+- Feature scaling
+- Regression modelling
+- Model comparison
+- Feature importance
+- Hyperparameter tuning
+- Model evaluation
+- Real-time API integration
 
 ---
 
-## 🛠️ Technologies
+# 🛠️ Technologies
 
 - Python
 - Pandas
@@ -180,10 +351,10 @@ The challenge explores predicting the **Dst index from solar wind measurements**
 - Matplotlib
 - Seaborn
 - Streamlit
-- Requests
-- Joblib
 - Plotly
 - Pydeck
+- Requests
+- Joblib
 - NOAA APIs
 - Open-Meteo APIs
 - Sunrise-Sunset API
@@ -191,24 +362,26 @@ The challenge explores predicting the **Dst index from solar wind measurements**
 
 ---
 
-## 📁 Repository Structure
+# 🚀 Future Improvements
 
-```text
-AI-Northern-Lights-Forecast-App/
-│
-├── Aurora_Forecast.ipynb
-│   └── Data preparation, EDA and Machine Learning
-│
-├── App_Development.ipynb
-│   └── API exploration and application development
-│
-├── aurora_forecast_app.py
-│   └── Final Streamlit application
-│
-├── model_columns.pkl
-│   └── Feature structure required by the ML model
-│
-├── requirements.txt
-│   └── Python dependencies
-│
-└── README.md
+Potential future developments include:
+
+- Hourly aurora intensity forecasts for future dates
+- Push notifications for favourable aurora conditions
+- Travel recommendations
+- Explainable AI
+- Extending the Machine Learning model from real-time estimation toward future geomagnetic forecasting
+
+---
+
+## 📋 Project Planning
+
+The development process and project tasks were organized using Trello:
+
+https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack
+
+---
+
+### 🎓 Ironhack Data Analytics Final Project
+
+Developed as the final project for the **Ironhack Data Analytics Bootcamp**.
