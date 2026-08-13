@@ -85,15 +85,19 @@ def get_smoothed_ssn():
 
     url = "https://services.swpc.noaa.gov/json/solar-cycle/solar-cycle-25-predicted.json"
 
-    response = requests.get(url)
-    data = response.json()
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
 
-    latest = data[0]
+        latest = data[0]
 
-    return {
-        "smoothed_ssn": float(latest["smoothed_ssn"])
-    }
+        return {
+            "smoothed_ssn": float(latest["smoothed_ssn"])
+        }
 
+    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
+        return None
 
 # -----------------------------
 # 45-Day Space Weather Forecast
@@ -993,43 +997,52 @@ else:
 # NOAA Solar Wind API
 # -----------------------------
 
-url = "https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json"
+try:
+    url = "https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json"
 
-response = requests.get(url)
-data = response.json()
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    data = response.json()
 
-latest_wind = data[0]
+    latest_wind = data[0]
 
-solar_wind = {
-    "speed": float(latest_wind["proton_speed"]),
-    "density": float(latest_wind["proton_density"]),
-    "temperature": float(latest_wind["proton_temperature"])
-}
+    solar_wind = {
+        "speed": float(latest_wind["proton_speed"]),
+        "density": float(latest_wind["proton_density"]),
+        "temperature": float(latest_wind["proton_temperature"])
+    }
 
+except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
+    solar_wind = None
 # -----------------------------
 # NOAA Magnetic Field API
 # -----------------------------
 
-url = "https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json"
+try:
+    url = "https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json"
 
-response = requests.get(url)
-data = response.json()
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    data = response.json()
 
-latest_mag = data[0]
+    latest_mag = data[0]
 
-magnetic_field = {
-    "bx_gse": float(latest_mag["bx_gse"]),
-    "by_gse": float(latest_mag["by_gse"]),
-    "bz_gse": float(latest_mag["bz_gse"]),
-    "theta_gse": float(latest_mag["theta_gse"]),
-    "phi_gse": float(latest_mag["phi_gse"]),
-    "bx_gsm": float(latest_mag["bx_gsm"]),
-    "by_gsm": float(latest_mag["by_gsm"]),
-    "bz_gsm": float(latest_mag["bz_gsm"]),
-    "theta_gsm": float(latest_mag["theta_gsm"]),
-    "phi_gsm": float(latest_mag["phi_gsm"]),
-    "bt": float(latest_mag["bt"])
-}
+    magnetic_field = {
+        "bx_gse": float(latest_mag["bx_gse"]),
+        "by_gse": float(latest_mag["by_gse"]),
+        "bz_gse": float(latest_mag["bz_gse"]),
+        "theta_gse": float(latest_mag["theta_gse"]),
+        "phi_gse": float(latest_mag["phi_gse"]),
+        "bx_gsm": float(latest_mag["bx_gsm"]),
+        "by_gsm": float(latest_mag["by_gsm"]),
+        "bz_gsm": float(latest_mag["bz_gsm"]),
+        "theta_gsm": float(latest_mag["theta_gsm"]),
+        "phi_gsm": float(latest_mag["phi_gsm"]),
+        "bt": float(latest_mag["bt"])
+    }
+
+except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
+    magnetic_field = None
 
 # =====================================================
 # Solar Cycle
@@ -1070,32 +1083,21 @@ sun_data = get_sun_data(
 # Prediction Engine
 # =====================================================
 
-api_data = {}
+prediction = None
 
-api_data.update(solar_wind)
-api_data.update(magnetic_field)
-api_data.update(ssn)
+if solar_wind is not None and magnetic_field is not None and ssn is not None:
 
+    api_data = {}
 
-# =====================================================
-# Prepare Model Input
-# =====================================================
+    api_data.update(solar_wind)
+    api_data.update(magnetic_field)
+    api_data.update(ssn)
 
-model_input = pd.DataFrame([api_data])
+    model_input = pd.DataFrame([api_data])
 
+    model_input = model_input.reindex(columns=model_columns)
 
-# =====================================================
-# Align Features
-# =====================================================
-
-model_input = model_input.reindex(columns=model_columns)
-
-
-# =====================================================
-# Prediction
-# =====================================================
-
-prediction = model.predict(model_input)[0]
+    prediction = model.predict(model_input)[0]
 
 # =====================================================
 # Aurora Forecast
@@ -1234,38 +1236,44 @@ if result is not None:
 
 st.subheader("Today's AI Aurora Estimate")
 
-if prediction > -30:
-    aurora_status = "🥺 No significant aurora activity expected"
+if prediction is None:
 
-elif prediction > -50:
-    aurora_status = "🌙 Faint aurora possible"
-
-elif prediction > -100:
-    aurora_status = "🌠 Moderate aurora expected"
-
-elif prediction > -200:
-    aurora_status = "✨ Strong aurora expected"
+    st.warning("Real-time AI estimate temporarily unavailable.")
 
 else:
-    aurora_status = "🌌 Exceptional aurora expected"
 
-st.markdown(f"""
-<div class="ai-card">
-<div class="ai-label">REAL-TIME AI ESTIMATE</div>
+    if prediction > -30:
+        aurora_status = "🥺 No significant aurora activity expected"
 
-<div class="ai-status">{aurora_status}</div>
+    elif prediction > -50:
+        aurora_status = "🌙 Faint aurora possible"
 
-<div class="ai-dst">{prediction:.1f} nT</div>
+    elif prediction > -100:
+        aurora_status = "🌠 Moderate aurora expected"
 
-<div class="ai-caption">
-Predicted Dst Index
-<br><br>
-This AI estimate is based on current real-time solar wind and magnetic field measurements.
-<br><br>
-More negative Dst values usually indicate stronger geomagnetic storms and better aurora potential.
-</div>
-</div>
-""", unsafe_allow_html=True)
+    elif prediction > -200:
+        aurora_status = "✨ Strong aurora expected"
+
+    else:
+        aurora_status = "🌌 Exceptional aurora expected"
+
+    st.markdown(f"""
+    <div class="ai-card">
+    <div class="ai-label">REAL-TIME AI ESTIMATE</div>
+
+    <div class="ai-status">{aurora_status}</div>
+
+    <div class="ai-dst">{prediction:.1f} nT</div>
+
+    <div class="ai-caption">
+    Predicted Dst Index
+    <br><br>
+    This AI estimate is based on current real-time solar wind and magnetic field measurements.
+    <br><br>
+    More negative Dst values usually indicate stronger geomagnetic storms and better aurora potential.
+    </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.subheader("Today's Auroral Activity · Next 30–40 min")
 
