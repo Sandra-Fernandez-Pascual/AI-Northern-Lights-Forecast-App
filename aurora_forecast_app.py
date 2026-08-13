@@ -120,11 +120,13 @@ def get_space_weather_forecast(forecast_date):
             elif item["metric"] == "f107":
                 f107_today = item["value"]
 
+    if ap_today is None or f107_today is None:
+        return None
+
     return {
         "ap_today": float(ap_today),
         "f107_today": float(f107_today)
     }
-
 
 # -----------------------------
 # Open-Meteo API
@@ -1034,6 +1036,10 @@ ssn = get_smoothed_ssn()
 # =====================================================
 
 forecast = get_space_weather_forecast(forecast_date)
+
+if forecast is None:
+    st.warning("Forecast data unavailable for the selected date. Please try another date.")
+    st.stop()
 
 # =====================================================
 # Open-Meteo API
