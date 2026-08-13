@@ -47,10 +47,13 @@ def get_aurora_oval():
 
     url = "https://services.swpc.noaa.gov/json/ovation_aurora_latest.json"
 
-    response = requests.get(url)
-    data = response.json()
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return response.json()
 
-    return data
+    except requests.RequestException:
+        return None
 
 
 def prepare_aurora_oval(data):
@@ -981,7 +984,10 @@ st.markdown(
 
 aurora_data = get_aurora_oval()
 
-aurora_df = prepare_aurora_oval(aurora_data)
+if aurora_data is not None:
+    aurora_df = prepare_aurora_oval(aurora_data)
+else:
+    aurora_df = None
 
 # -----------------------------
 # NOAA Solar Wind API
@@ -1265,7 +1271,14 @@ More negative Dst values usually indicate stronger geomagnetic storms and better
 
 st.subheader("Today's Auroral Activity · Next 30–40 min")
 
-fig = go.Figure()
+if aurora_df is None:
+    st.warning("Auroral oval data temporarily unavailable.")
+
+else:
+    fig = go.Figure()
+
+    # Aurora oval
+    # ...TODO el código del mapa...
 
 # Aurora oval
 fig.add_trace(
