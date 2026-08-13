@@ -26,19 +26,24 @@ def get_coordinates(location):
         "&format=json"
     )
 
-    response = requests.get(url)
-    data = response.json()
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
 
-    if "results" not in data:
+        if "results" not in data or not data["results"]:
+            return None
+
+        return {
+            "latitude": data["results"][0]["latitude"],
+            "longitude": data["results"][0]["longitude"],
+            "country": data["results"][0]["country"],
+            "name": data["results"][0]["name"],
+        }
+
+    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
         return None
-
-    return {
-        "latitude": data["results"][0]["latitude"],
-        "longitude": data["results"][0]["longitude"],
-        "country": data["results"][0]["country"],
-        "name": data["results"][0]["name"],
-    }
-
+        
 # -----------------------------
 # NOAA Aurora Oval
 # -----------------------------
@@ -107,34 +112,39 @@ def get_space_weather_forecast(forecast_date):
 
     url = "https://services.swpc.noaa.gov/json/45-day-forecast.json"
 
-    response = requests.get(url)
-    forecast = response.json()["data"]
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        forecast = response.json()["data"]
 
-    target_date = forecast_date.strftime("%Y-%m-%d")
+        target_date = forecast_date.strftime("%Y-%m-%d")
 
-    ap_today = None
-    f107_today = None
+        ap_today = None
+        f107_today = None
 
-    for item in forecast:
+        for item in forecast:
 
-        item_date = item["time"][:10]
+            item_date = item["time"][:10]
 
-        if item_date == target_date:
+            if item_date == target_date:
 
-            if item["metric"] == "ap":
-                ap_today = item["value"]
+                if item["metric"] == "ap":
+                    ap_today = item["value"]
 
-            elif item["metric"] == "f107":
-                f107_today = item["value"]
+                elif item["metric"] == "f107":
+                    f107_today = item["value"]
 
-    if ap_today is None or f107_today is None:
+        if ap_today is None or f107_today is None:
+            return None
+
+        return {
+            "ap_today": float(ap_today),
+            "f107_today": float(f107_today)
+        }
+
+    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
         return None
-
-    return {
-        "ap_today": float(ap_today),
-        "f107_today": float(f107_today)
-    }
-
+        
 # -----------------------------
 # Open-Meteo API
 # -----------------------------
@@ -161,7 +171,16 @@ def get_environment(latitude, longitude, forecast_date):
             f"&timezone=auto"
         )
 
-        data = requests.get(url).json()
+        try:
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+        except (requests.RequestException, ValueError, KeyError, TypeError):
+            return None
+
+        if "hourly" not in data:
+            return None
 
         weather_df = pd.DataFrame({
             "time": pd.to_datetime(data["hourly"]["time"]),
@@ -209,7 +228,13 @@ def get_environment(latitude, longitude, forecast_date):
                 f"&timezone=auto"
             )
 
-            data = requests.get(url).json()
+            try:
+                response = requests.get(url, timeout=10)
+                response.raise_for_status()
+                data = response.json()
+
+            except (requests.RequestException, ValueError, KeyError, TypeError):
+                continue
 
             if "hourly" not in data:
                 continue
@@ -218,7 +243,7 @@ def get_environment(latitude, longitude, forecast_date):
                 "time": pd.to_datetime(data["hourly"]["time"]),
                 "cloud_cover": data["hourly"]["cloud_cover"],
                 "visibility": data["hourly"]["visibility"]
-            })          
+            })
 
             df = df[
                 (
@@ -246,7 +271,6 @@ def get_environment(latitude, longitude, forecast_date):
 
         else:
 
-            # No valid historical visibility available
             weather_df = pd.DataFrame({
                 "time": [],
                 "cloud_cover": [],
@@ -259,7 +283,6 @@ def get_environment(latitude, longitude, forecast_date):
     # Night hours only
     # ---------------------------------
 
-    # Ensure time is datetime
     weather_df["time"] = pd.to_datetime(
         weather_df["time"],
         errors="coerce"
@@ -273,10 +296,8 @@ def get_environment(latitude, longitude, forecast_date):
             "weather_source": weather_source
         }
 
-    # Night hours only
     night_df = weather_df.copy()
 
-    # Calculate each variable independently
     cloud_values = night_df["cloud_cover"].dropna()
     visibility_values = night_df["visibility"].dropna()
 
@@ -298,6 +319,7 @@ def get_environment(latitude, longitude, forecast_date):
         "night_weather": night_df,
         "weather_source": weather_source
     }
+    
 # -----------------------------
 # Sunrise-Sunset API
 # -----------------------------
@@ -311,11 +333,13 @@ def get_sun_data(latitude, longitude, forecast_date):
         f"&date={forecast_date.isoformat()}"
     )
 
-    sun_response = requests.get(sun_url)
-    sun_data = sun_response.json()
+    try:
+        sun_response = requests.get(sun_url, timeout=10)
+        sun_response.raise_for_status()
+        return sun_response.json()
 
-    return sun_data
-
+    except (requests.RequestException, ValueError, KeyError, TypeError):
+        return None
 
 # =====================================================
 # Helper Functions
@@ -883,16 +907,24 @@ import os
 
 MODEL_PATH = "random_forest_model_compressed.pkl"
 
-if not os.path.exists(MODEL_PATH):
-    url = "https://drive.google.com/uc?export=download&id=1nhU2nxwm7DXhBdTeFkuidoZoGYv23IZl"
-    response = requests.get(url)
-    response.raise_for_status()
+model = None
+model_columns = None
 
-    with open(MODEL_PATH, "wb") as f:
-        f.write(response.content)
+try:
+    if not os.path.exists(MODEL_PATH):
+        url = "https://drive.google.com/uc?export=download&id=1nhU2nxwm7DXhBdTeFkuidoZoGYv23IZl"
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
 
-model = joblib.load(MODEL_PATH)
-model_columns = joblib.load("model_columns.pkl")
+        with open(MODEL_PATH, "wb") as f:
+            f.write(response.content)
+
+    model = joblib.load(MODEL_PATH)
+    model_columns = joblib.load("model_columns.pkl")
+
+except (requests.RequestException, OSError, ValueError, EOFError):
+    model = None
+    model_columns = None
 
 # -----------------------------
 # Application Header
@@ -1085,7 +1117,13 @@ sun_data = get_sun_data(
 
 prediction = None
 
-if solar_wind is not None and magnetic_field is not None and ssn is not None:
+if (
+    model is not None
+    and model_columns is not None
+    and solar_wind is not None
+    and magnetic_field is not None
+    and ssn is not None
+):
 
     api_data = {}
 
@@ -1105,7 +1143,10 @@ if solar_wind is not None and magnetic_field is not None and ssn is not None:
 
 result = None
 
-if forecast is not None:
+if environment is None or sun_data is None:
+    st.warning("Environmental forecast data temporarily unavailable.")
+
+if forecast is not None and environment is not None and sun_data is not None:
     result = estimate_aurora_probability(
         forecast,
         environment,
