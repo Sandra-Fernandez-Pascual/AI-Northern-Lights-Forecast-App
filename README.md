@@ -5,6 +5,7 @@
 **An end-to-end data science project that combines Machine Learning, real-time space weather data and environmental forecasts to help users identify favourable conditions for observing the Northern Lights.**
 
 🔗 **Live App:** https://northern-lights-forecast.streamlit.app  
+🎤 **Final Presentation:** https://www.canva.com/design/DAHSKV9_810/SHlQImzLKEY5xYw1t5Kd4A/edit?ui=eyJBIjp7fX0  
 📋 **Project Planning:** https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack
 
 ---
