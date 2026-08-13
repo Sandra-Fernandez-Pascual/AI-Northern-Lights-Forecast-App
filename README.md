@@ -57,7 +57,9 @@ This prediction becomes:
 
 ### 🤖 Today's AI Aurora Estimate
 
-Future forecasts are handled separately using forecast geomagnetic activity (`Ap`), geographic location, darkness and atmospheric conditions.
+Future forecasts are handled separately using forecast geomagnetic activity (`Ap`), geographic location, darkness and atmospheric conditions: 
+
+### 🌌 Estimated chance of observing the Northern Lights
 
 ---
 
