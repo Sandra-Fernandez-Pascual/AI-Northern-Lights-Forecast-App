@@ -896,9 +896,24 @@ hr {
     margin-bottom: 0.8rem;
 }
 
+.mobile-start-hint {
+    display: none;
+}
+
 /* ---------- Mobile ---------- */
 
 @media (max-width: 768px) {
+
+.mobile-start-hint {
+    display: block;
+    background: rgba(103, 196, 177, 0.10);
+    border: 1px solid rgba(137, 220, 202, 0.18);
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1rem;
+    color: #d9f5ee;
+    font-size: 0.9rem;
+}
 
     .block-container {
         padding: 1.5rem 1rem 3rem 1rem;
@@ -988,6 +1003,11 @@ st.markdown("""
 
 </style>
 """, unsafe_allow_html=True)
+
+st.markdown(
+    '<div class="mobile-start-hint">'📍 Start here: tap the <strong>»</strong> button in the top-left corner to choose your destination and forecast date.'</div>',
+    unsafe_allow_html=True
+)
 
 # -----------------------------
 # Sidebar
