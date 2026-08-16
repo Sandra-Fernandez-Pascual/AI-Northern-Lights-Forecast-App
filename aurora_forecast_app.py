@@ -1025,40 +1025,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-components.html(
-    """
-    <script>
-    const w = window.parent;
-
-    if (w.innerWidth <= 768 && !w.__auroraCalendarFix) {
-        w.__auroraCalendarFix = true;
-
-        const observer = new MutationObserver(() => {
-            const calendar = w.document.querySelector(
-                '[role="grid"][aria-roledescription="Calendar month"]'
-            );
-
-            if (calendar) {
-                requestAnimationFrame(() => {
-                    w.dispatchEvent(new Event("resize"));
-
-                    setTimeout(() => {
-                        w.dispatchEvent(new Event("resize"));
-                    }, 100);
-                });
-            }
-        });
-
-        observer.observe(w.document.body, {
-            childList: true,
-            subtree: true
-        });
-    }
-    </script>
-    """,
-    height=0
-)
-
 # -----------------------------
 # Sidebar
 # -----------------------------
@@ -1084,7 +1050,7 @@ with st.sidebar.container(border=True):
         "Destination",
         list(destinations.keys())
     )
-    
+
     if selection == "Other...":
         location = st.text_input(
             "Enter a city",
@@ -1093,11 +1059,15 @@ with st.sidebar.container(border=True):
     else:
         location = destinations[selection]
 
-    forecast_date = st.date_input(
+    available_dates = [
+        date.today() + timedelta(days=i)
+        for i in range(45)
+    ]
+
+    forecast_date = st.selectbox(
         "Forecast date",
-        value=date.today(),
-        min_value=date.today(),
-        max_value=date.today() + timedelta(days=44)
+        available_dates,
+        format_func=lambda d: d.strftime("%d %B %Y")
     )
 
     st.caption(
