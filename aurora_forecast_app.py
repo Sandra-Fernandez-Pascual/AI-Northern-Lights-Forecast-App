@@ -923,10 +923,7 @@ hr {
     font-size: 1.2rem;
     font-weight: 900;
 }
-[data-testid="collapsedControl"],
-[data-testid="collapsedControl"] svg,
-[data-testid="collapsedControl"] path {
-    color: #ffffff !important;
+div[data-testid="collapsedControl"] path {
     fill: #ffffff !important;
 }
     .block-container {
@@ -1078,12 +1075,12 @@ if generate:
         """
         <script>
         if (window.parent.innerWidth <= 768) {
-            const closeButton = window.parent.document.querySelector(
-                'section[data-testid="stSidebar"] button[data-testid="baseButton-header"]'
+            var btn = window.parent.document.querySelector(
+                '.stSidebar button[kind="headerNoPadding"]'
             );
 
-            if (closeButton) {
-                closeButton.click();
+            if (btn) {
+                btn.click();
             }
         }
         </script>
