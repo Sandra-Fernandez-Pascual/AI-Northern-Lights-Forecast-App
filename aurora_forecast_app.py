@@ -1053,16 +1053,16 @@ with st.sidebar.container(border=True):
     else:
         location = destinations[selection]
 
-    forecast_date = st.date_input(
+        forecast_date = st.date_input(
         "Forecast date",
         value=date.today(),
         min_value=date.today(),
         max_value=date.today() + timedelta(days=44)
     )
-    
-st.caption(
-    "Forecasts are available up to 45 days ahead, as reliable forecast data is not available beyond this range."
-)
+
+    st.caption(
+        "Forecasts are available up to 45 days ahead, as reliable forecast data is not available beyond this range."
+    )
 
 
 st.sidebar.markdown("---")
@@ -1526,5 +1526,5 @@ else:
 # =====================================================
 # Testing
 # =====================================================
-st.write("Streamlit version:", st.__version__)
+
 
