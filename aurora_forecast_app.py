@@ -720,7 +720,8 @@ p, label {
     opacity: 1 !important;
 }
 
-[data-testid="stSidebar"] .stCaption {
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"],
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {
     color: #2f7468 !important;
     opacity: 1 !important;
 }
