@@ -1005,7 +1005,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown(
-    '<div class="mobile-start-hint">'📍 Start here: tap the <strong>»</strong> button in the top-left corner to choose your destination and forecast date.'</div>',
+    '<div class="mobile-start-hint">📍 Start here: tap the <strong>»</strong> button in the top-left corner to choose your destination and forecast date.</div>',
     unsafe_allow_html=True
 )
 
