@@ -1059,7 +1059,7 @@ with st.sidebar.container(border=True):
     else:
         location = destinations[selection]
 
-        forecast_date = st.date_input(
+    forecast_date = st.date_input(
         "Forecast date",
         value=date.today(),
         min_value=date.today(),
