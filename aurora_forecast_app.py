@@ -720,6 +720,11 @@ p, label {
     opacity: 1 !important;
 }
 
+[data-testid="stSidebar"] .stCaption {
+    color: #2f7468 !important;
+    opacity: 1 !important;
+}
+
 /* ---------- Destination ---------- */
 
 [data-testid="stSidebar"] [data-baseweb="select"] > div {
