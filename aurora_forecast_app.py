@@ -1059,16 +1059,12 @@ with st.sidebar.container(border=True):
     else:
         location = destinations[selection]
 
-    available_dates = [
-        date.today() + timedelta(days=i)
-        for i in range(45)
-    ]
-
-    forecast_date = st.selectbox(
-        "Forecast date",
-        available_dates,
-        format_func=lambda d: d.strftime("%d %B %Y")
-    )
+    forecast_date = st.date_input(
+    "Forecast date",
+    value=date.today(),
+    min_value=date.today(),
+    max_value=date.today() + timedelta(days=44)
+)
 
     st.caption(
         "Forecasts are available up to 45 days ahead, as reliable forecast data is not available beyond this range."
