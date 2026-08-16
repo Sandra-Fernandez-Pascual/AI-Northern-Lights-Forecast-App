@@ -923,11 +923,13 @@ hr {
     font-size: 1.2rem;
     font-weight: 900;
 }
-button[data-testid="stBaseButton-headerNoPadding"] {
+[data-testid="stSidebarCollapsedControl"] {
     color: #ffffff !important;
 }
 
-button[data-testid="stBaseButton-headerNoPadding"] svg path {
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="stSidebarCollapsedControl"] svg path {
+    color: #ffffff !important;
     fill: #ffffff !important;
     stroke: #ffffff !important;
 }
