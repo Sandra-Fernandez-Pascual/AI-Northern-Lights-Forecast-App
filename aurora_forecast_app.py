@@ -923,15 +923,19 @@ hr {
     font-size: 1.2rem;
     font-weight: 900;
 }
-[data-testid="stSidebarCollapsedControl"] {
-    color: #ffffff !important;
-}
-
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="stSidebarCollapsedControl"] span,
 [data-testid="stSidebarCollapsedControl"] svg,
 [data-testid="stSidebarCollapsedControl"] svg path {
     color: #ffffff !important;
     fill: #ffffff !important;
     stroke: #ffffff !important;
+    opacity: 1 !important;
+}
+
+[data-testid="stSidebarCollapsedControl"] svg {
+    filter: brightness(0) invert(1) !important;
 }
     .block-container {
         padding: 1.5rem 1rem 3rem 1rem;
@@ -1108,7 +1112,6 @@ if generate:
     )
     
 if not generate:
-    st.info("Select a location and press **Generate Aurora Forecast**.")
     st.stop()
 
 # -----------------------------
