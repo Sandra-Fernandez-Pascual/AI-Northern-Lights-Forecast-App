@@ -16,7 +16,7 @@ from datetime import datetime, timezone, date, timedelta
 # -----------------------------
 # Geocoding function
 # -----------------------------
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_coordinates(location):
 
     url = (
@@ -48,7 +48,7 @@ def get_coordinates(location):
 # -----------------------------
 # NOAA Aurora Oval
 # -----------------------------
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_aurora_oval():
 
     url = "https://services.swpc.noaa.gov/json/ovation_aurora_latest.json"
@@ -86,7 +86,7 @@ def prepare_aurora_oval(data):
 # -----------------------------
 # Solar Cycle Forecast
 # -----------------------------
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_smoothed_ssn():
 
     url = "https://services.swpc.noaa.gov/json/solar-cycle/solar-cycle-25-predicted.json"
@@ -108,7 +108,7 @@ def get_smoothed_ssn():
 # -----------------------------
 # 45-Day Space Weather Forecast
 # -----------------------------
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_space_weather_forecast(forecast_date):
 
     url = "https://services.swpc.noaa.gov/json/45-day-forecast.json"
@@ -149,7 +149,7 @@ def get_space_weather_forecast(forecast_date):
 # -----------------------------
 # Open-Meteo API
 # -----------------------------
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_environment(latitude, longitude, forecast_date):
 
     days_ahead = (forecast_date - date.today()).days
@@ -324,7 +324,7 @@ def get_environment(latitude, longitude, forecast_date):
 # -----------------------------
 # Sunrise-Sunset API
 # -----------------------------
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_sun_data(latitude, longitude, forecast_date):
 
     sun_url = (
