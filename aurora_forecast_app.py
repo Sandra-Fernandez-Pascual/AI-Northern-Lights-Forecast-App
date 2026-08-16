@@ -346,7 +346,7 @@ def get_sun_data(latitude, longitude, forecast_date):
 # NOAA Solar Wind API
 # -----------------------------
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=120, show_spinner=False)
 def get_solar_wind():
 
     try:
@@ -372,7 +372,7 @@ def get_solar_wind():
 # NOAA Magnetic Field API
 # -----------------------------
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=120, show_spinner=False)
 def get_magnetic_field():
 
     try:
