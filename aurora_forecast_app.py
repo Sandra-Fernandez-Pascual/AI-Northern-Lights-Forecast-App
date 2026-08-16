@@ -1075,6 +1075,21 @@ st.sidebar.markdown("---")
 
 generate = st.sidebar.button("🌌 Generate Aurora Forecast")
 
+if generate:
+    components.html(
+        """
+        <script>
+        if (window.parent.innerWidth <= 768) {
+            const btn = window.parent.document.querySelector(
+                '.stSidebar button[kind="headerNoPadding"]'
+            );
+            if (btn) btn.click();
+        }
+        </script>
+        """,
+        height=0
+    )
+
 if not generate:
     st.stop()
 
