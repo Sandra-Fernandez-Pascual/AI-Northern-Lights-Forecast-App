@@ -923,8 +923,13 @@ hr {
     font-size: 1.2rem;
     font-weight: 900;
 }
-div[data-testid="collapsedControl"] path:nth-of-type(2) {
+button[data-testid="stBaseButton-headerNoPadding"] {
+    color: #ffffff !important;
+}
+
+button[data-testid="stBaseButton-headerNoPadding"] svg path {
     fill: #ffffff !important;
+    stroke: #ffffff !important;
 }
     .block-container {
         padding: 1.5rem 1rem 3rem 1rem;
@@ -1075,26 +1080,31 @@ if generate:
         """
         <script>
         if (window.parent.innerWidth <= 768) {
-            var btn = window.parent.document.querySelector(
+            const btn = window.parent.document.querySelector(
                 '.stSidebar button[kind="headerNoPadding"]'
             );
 
             if (btn) {
-    btn.click();
+                btn.click();
 
-    setTimeout(() => {
-        window.parent.scrollTo({
-            top: 700,
-            behavior: "smooth"
-        });
-    }, 500);
-}
+                setTimeout(() => {
+                    const target =
+                        window.parent.document.getElementById("forecast-results");
+
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start"
+                        });
+                    }
+                }, 700);
+            }
         }
         </script>
         """,
         height=0
     )
-
+    
 if not generate:
     st.info("Select a location and press **Generate Aurora Forecast**.")
     st.stop()
@@ -1267,6 +1277,8 @@ if forecast is not None and environment is not None and sun_data is not None:
 # -----------------------------------------------------
 # Aurora Observation Probability
 # -----------------------------------------------------
+
+st.markdown('<div id="forecast-results"></div>', unsafe_allow_html=True)
 
 if result is not None:
 
