@@ -923,8 +923,9 @@ hr {
     font-size: 1.2rem;
     font-weight: 900;
 }
-[data-testid="stSidebarCollapsedControl"] button,
-[data-testid="stSidebarCollapsedControl"] svg {
+[data-testid="collapsedControl"],
+[data-testid="collapsedControl"] svg,
+[data-testid="collapsedControl"] path {
     color: #ffffff !important;
     fill: #ffffff !important;
 }
@@ -1076,19 +1077,13 @@ if generate:
     components.html(
         """
         <script>
-        const sidebar = window.parent.document.querySelector(
-            '[data-testid="stSidebar"]'
-        );
+        if (window.parent.innerWidth <= 768) {
+            const closeButton = window.parent.document.querySelector(
+                'section[data-testid="stSidebar"] button[data-testid="baseButton-header"]'
+            );
 
-        if (sidebar) {
-            const buttons = sidebar.querySelectorAll('button');
-
-            for (const button of buttons) {
-                const label = button.getAttribute('aria-label') || '';
-                if (label.toLowerCase().includes('close')) {
-                    button.click();
-                    break;
-                }
+            if (closeButton) {
+                closeButton.click();
             }
         }
         </script>
