@@ -651,7 +651,8 @@ def estimate_aurora_probability(
 st.set_page_config(
     page_title="AI-powered Northern Lights Predictor",
     page_icon="🌌",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="auto"
 )
 
 st.markdown("""
@@ -920,15 +921,6 @@ hr {
     color: #ffffff !important;
     font-size: 1.2rem;
     font-weight: 900;
-}
-
-[data-testid="stSidebar"] {
-    width: 100vw !important;
-    min-width: 100vw !important;
-}
-
-[data-testid="stSidebar"] > div:first-child {
-    padding-top: 0.5rem !important;
 }
 
     .block-container {
