@@ -1080,31 +1080,42 @@ if generate:
         """
         <script>
         if (window.parent.innerWidth <= 768) {
+
             const btn = window.parent.document.querySelector(
                 '.stSidebar button[kind="headerNoPadding"]'
             );
 
             if (btn) {
                 btn.click();
-
-                setTimeout(() => {
-                    const target =
-                        window.parent.document.getElementById("forecast-results");
-
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: "smooth",
-                            block: "start"
-                        });
-                    }
-                }, 700);
             }
+
+            let attempts = 0;
+
+            const scrollToResults = setInterval(() => {
+                const target =
+                    window.parent.document.getElementById("forecast-results");
+
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+
+                    clearInterval(scrollToResults);
+                }
+
+                attempts++;
+
+                if (attempts >= 20) {
+                    clearInterval(scrollToResults);
+                }
+
+            }, 250);
         }
         </script>
         """,
         height=0
     )
-    
 if not generate:
     st.stop()
 
