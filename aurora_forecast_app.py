@@ -923,7 +923,7 @@ hr {
     font-size: 1.2rem;
     font-weight: 900;
 }
-div[data-testid="collapsedControl"] path {
+div[data-testid="collapsedControl"] path:nth-of-type(2) {
     fill: #ffffff !important;
 }
     .block-container {
@@ -1080,8 +1080,15 @@ if generate:
             );
 
             if (btn) {
-                btn.click();
-            }
+    btn.click();
+
+    setTimeout(() => {
+        window.parent.scrollTo({
+            top: 700,
+            behavior: "smooth"
+        });
+    }, 500);
+}
         }
         </script>
         """,
