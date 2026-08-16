@@ -1025,6 +1025,40 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+components.html(
+    """
+    <script>
+    const w = window.parent;
+
+    if (w.innerWidth <= 768 && !w.__auroraCalendarFix) {
+        w.__auroraCalendarFix = true;
+
+        const observer = new MutationObserver(() => {
+            const calendar = w.document.querySelector(
+                '[role="grid"][aria-roledescription="Calendar month"]'
+            );
+
+            if (calendar) {
+                requestAnimationFrame(() => {
+                    w.dispatchEvent(new Event("resize"));
+
+                    setTimeout(() => {
+                        w.dispatchEvent(new Event("resize"));
+                    }, 100);
+                });
+            }
+        });
+
+        observer.observe(w.document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+    </script>
+    """,
+    height=0
+)
+
 # -----------------------------
 # Sidebar
 # -----------------------------
