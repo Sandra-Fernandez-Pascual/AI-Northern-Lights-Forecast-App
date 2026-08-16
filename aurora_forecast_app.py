@@ -1050,8 +1050,8 @@ with st.sidebar.container(border=True):
         "Destination",
         list(destinations.keys())
     )
-
-        if selection == "Other...":
+    
+    if selection == "Other...":
         location = st.text_input(
             "Enter a city",
             placeholder="e.g. Kiruna, Sweden"
@@ -1066,10 +1066,10 @@ with st.sidebar.container(border=True):
         max_value=date.today() + timedelta(days=44)
     )
 
-       st.caption(
+    st.caption(
         "Forecasts are available up to 45 days ahead, as reliable forecast data is not available beyond this range."
     )
-
+    
 
 st.sidebar.markdown("---")
 
