@@ -4,6 +4,7 @@ import numpy as np
 import requests
 import pydeck as pdk
 import plotly.graph_objects as go
+import streamlit.components.v1 as components
 import joblib
 
 from datetime import datetime, timezone, date, timedelta
@@ -922,7 +923,11 @@ hr {
     font-size: 1.2rem;
     font-weight: 900;
 }
-
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="stSidebarCollapsedControl"] svg {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+}
     .block-container {
         padding: 1.5rem 1rem 3rem 1rem;
     }
@@ -1066,6 +1071,30 @@ st.caption(
 st.sidebar.markdown("---")
 
 generate = st.sidebar.button("🌌 Generate Aurora Forecast")
+
+if generate:
+    components.html(
+        """
+        <script>
+        const sidebar = window.parent.document.querySelector(
+            '[data-testid="stSidebar"]'
+        );
+
+        if (sidebar) {
+            const buttons = sidebar.querySelectorAll('button');
+
+            for (const button of buttons) {
+                const label = button.getAttribute('aria-label') || '';
+                if (label.toLowerCase().includes('close')) {
+                    button.click();
+                    break;
+                }
+            }
+        }
+        </script>
+        """,
+        height=0
+    )
 
 if not generate:
     st.info("Select a location and press **Generate Aurora Forecast**.")
