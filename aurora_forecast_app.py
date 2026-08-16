@@ -15,7 +15,7 @@ from datetime import datetime, timezone, date, timedelta
 # -----------------------------
 # Geocoding function
 # -----------------------------
-
+@st.cache_data(ttl=3600)
 def get_coordinates(location):
 
     url = (
@@ -47,7 +47,7 @@ def get_coordinates(location):
 # -----------------------------
 # NOAA Aurora Oval
 # -----------------------------
-
+@st.cache_data(ttl=3600)
 def get_aurora_oval():
 
     url = "https://services.swpc.noaa.gov/json/ovation_aurora_latest.json"
@@ -85,7 +85,7 @@ def prepare_aurora_oval(data):
 # -----------------------------
 # Solar Cycle Forecast
 # -----------------------------
-
+@st.cache_data(ttl=3600)
 def get_smoothed_ssn():
 
     url = "https://services.swpc.noaa.gov/json/solar-cycle/solar-cycle-25-predicted.json"
@@ -107,7 +107,7 @@ def get_smoothed_ssn():
 # -----------------------------
 # 45-Day Space Weather Forecast
 # -----------------------------
-
+@st.cache_data(ttl=3600)
 def get_space_weather_forecast(forecast_date):
 
     url = "https://services.swpc.noaa.gov/json/45-day-forecast.json"
@@ -148,7 +148,7 @@ def get_space_weather_forecast(forecast_date):
 # -----------------------------
 # Open-Meteo API
 # -----------------------------
-
+@st.cache_data(ttl=3600)
 def get_environment(latitude, longitude, forecast_date):
 
     days_ahead = (forecast_date - date.today()).days
@@ -323,7 +323,7 @@ def get_environment(latitude, longitude, forecast_date):
 # -----------------------------
 # Sunrise-Sunset API
 # -----------------------------
-
+@st.cache_data(ttl=3600)
 def get_sun_data(latitude, longitude, forecast_date):
 
     sun_url = (
@@ -896,6 +896,45 @@ hr {
     margin-bottom: 0.8rem;
 }
 
+/* ---------- Mobile ---------- */
+
+@media (max-width: 768px) {
+
+    .block-container {
+        padding: 1.5rem 1rem 3rem 1rem;
+    }
+
+    h1 {
+        font-size: 2rem !important;
+        line-height: 1.15 !important;
+    }
+
+    h2 {
+        font-size: 1.5rem !important;
+    }
+
+    .condition-card {
+        min-height: auto;
+        padding: 1rem;
+    }
+
+    .location-card {
+        padding: 1rem;
+    }
+
+    .ai-card {
+        padding: 1.2rem;
+    }
+
+    [data-testid="stMetric"] {
+        padding: 1rem;
+    }
+
+    [data-testid="stPlotlyChart"] {
+        width: 100% !important;
+    }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -907,12 +946,12 @@ import os
 
 MODEL_PATH = "random_forest_model_compressed.pkl"
 
-model = None
-model_columns = None
+@st.cache_resource
+def load_model():
 
-try:
     if not os.path.exists(MODEL_PATH):
-        url = "https://drive.google.com/uc?export=download&id=1nhU2nxwm7DXhBdTeFkuidoZoGYv23IZl"
+        url = st.secrets["model_url"]
+
         response = requests.get(url, timeout=30)
         response.raise_for_status()
 
@@ -922,10 +961,16 @@ try:
     model = joblib.load(MODEL_PATH)
     model_columns = joblib.load("model_columns.pkl")
 
+    return model, model_columns
+
+
+try:
+    model, model_columns = load_model()
+
 except (requests.RequestException, OSError, ValueError, EOFError):
     model = None
     model_columns = None
-
+    
 # -----------------------------
 # Application Header
 # -----------------------------
@@ -984,6 +1029,10 @@ with st.sidebar.container(border=True):
         min_value=date.today(),
         max_value=date.today() + timedelta(days=44)
     )
+st.caption(
+    "Forecasts are available up to 45 days ahead, as reliable forecast data is not available beyond this range."
+)
+
 
 st.sidebar.markdown("---")
 
