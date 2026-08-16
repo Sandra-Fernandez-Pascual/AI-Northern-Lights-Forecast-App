@@ -922,6 +922,15 @@ hr {
     font-weight: 900;
 }
 
+[data-testid="stSidebar"] {
+    width: 100vw !important;
+    min-width: 100vw !important;
+}
+
+[data-testid="stSidebar"] > div:first-child {
+    padding-top: 0.5rem !important;
+}
+
     .block-container {
         padding: 1.5rem 1rem 3rem 1rem;
     }
@@ -956,13 +965,6 @@ hr {
         width: 100% !important;
     }
 
-    [data-baseweb="calendar"] {
-    max-width: calc(100vw - 2rem) !important;
-}
-
-[data-baseweb="popover"] {
-    max-width: 100vw !important;
-}
 }
 
 </style>
