@@ -926,12 +926,6 @@ hr {
     color: #ffffff !important;
 }
 
-/* Keep date picker inside the mobile viewport */
-div[role="dialog"] {
-    max-height: 85vh !important;
-    overflow-y: auto !important;
-}
-
     .block-container {
         padding: 1.5rem 1rem 3rem 1rem;
     }
