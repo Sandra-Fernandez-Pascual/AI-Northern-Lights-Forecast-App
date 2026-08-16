@@ -1042,18 +1042,18 @@ with st.sidebar.container(border=True):
         "Other...": None
     }
 
-selection = st.selectbox(
-    "Destination",
-    list(destinations.keys())
-)
-
-if selection == "Other...":
-    location = st.text_input(
-        "Enter a city",
-        placeholder="e.g. Kiruna, Sweden"
+    selection = st.selectbox(
+        "Destination",
+        list(destinations.keys())
     )
-else:
-    location = destinations[selection]
+
+    if selection == "Other...":
+        location = st.text_input(
+            "Enter a city",
+            placeholder="e.g. Kiruna, Sweden"
+        )
+    else:
+        location = destinations[selection]
 
     forecast_date = st.date_input(
         "Forecast date",
@@ -1061,12 +1061,7 @@ else:
         min_value=date.today(),
         max_value=date.today() + timedelta(days=44)
     )
-    forecast_date = st.date_input(
-        "Forecast date",
-        value=date.today(),
-        min_value=date.today(),
-        max_value=date.today() + timedelta(days=44)
-    )
+    
 st.caption(
     "Forecasts are available up to 45 days ahead, as reliable forecast data is not available beyond this range."
 )
