@@ -1075,47 +1075,6 @@ st.sidebar.markdown("---")
 
 generate = st.sidebar.button("🌌 Generate Aurora Forecast")
 
-if generate:
-    components.html(
-        """
-        <script>
-        if (window.parent.innerWidth <= 768) {
-
-            const btn = window.parent.document.querySelector(
-                '.stSidebar button[kind="headerNoPadding"]'
-            );
-
-            if (btn) {
-                btn.click();
-            }
-
-            let attempts = 0;
-
-            const scrollToResults = setInterval(() => {
-                const target =
-                    window.parent.document.getElementById("forecast-results");
-
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start"
-                    });
-
-                    clearInterval(scrollToResults);
-                }
-
-                attempts++;
-
-                if (attempts >= 20) {
-                    clearInterval(scrollToResults);
-                }
-
-            }, 250);
-        }
-        </script>
-        """,
-        height=0
-    )
 if not generate:
     st.stop()
 
@@ -1289,6 +1248,29 @@ if forecast is not None and environment is not None and sun_data is not None:
 # -----------------------------------------------------
 
 st.markdown('<div id="forecast-results"></div>', unsafe_allow_html=True)
+
+components.html(
+    """
+    <script>
+    if (window.parent.innerWidth <= 768) {
+
+        setTimeout(() => {
+            const target =
+                window.parent.document.getElementById("forecast-results");
+
+            if (target) {
+                target.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }
+        }, 100);
+
+    }
+    </script>
+    """,
+    height=0
+)
 
 if result is not None:
 
