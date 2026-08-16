@@ -48,7 +48,7 @@ def get_coordinates(location):
 # -----------------------------
 # NOAA Aurora Oval
 # -----------------------------
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_aurora_oval():
 
     url = "https://services.swpc.noaa.gov/json/ovation_aurora_latest.json"
@@ -342,6 +342,65 @@ def get_sun_data(latitude, longitude, forecast_date):
     except (requests.RequestException, ValueError, KeyError, TypeError):
         return None
 
+# -----------------------------
+# NOAA Solar Wind API
+# -----------------------------
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_solar_wind():
+
+    try:
+        url = "https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json"
+
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        latest_wind = data[0]
+
+        return {
+            "speed": float(latest_wind["proton_speed"]),
+            "density": float(latest_wind["proton_density"]),
+            "temperature": float(latest_wind["proton_temperature"])
+        }
+
+    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
+        return None
+
+
+# -----------------------------
+# NOAA Magnetic Field API
+# -----------------------------
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_magnetic_field():
+
+    try:
+        url = "https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json"
+
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        latest_mag = data[0]
+
+        return {
+            "bx_gse": float(latest_mag["bx_gse"]),
+            "by_gse": float(latest_mag["by_gse"]),
+            "bz_gse": float(latest_mag["bz_gse"]),
+            "theta_gse": float(latest_mag["theta_gse"]),
+            "phi_gse": float(latest_mag["phi_gse"]),
+            "bx_gsm": float(latest_mag["bx_gsm"]),
+            "by_gsm": float(latest_mag["by_gsm"]),
+            "bz_gsm": float(latest_mag["bz_gsm"]),
+            "theta_gsm": float(latest_mag["theta_gsm"]),
+            "phi_gsm": float(latest_mag["phi_gsm"]),
+            "bt": float(latest_mag["bt"])
+        }
+
+    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
+        return None
+
 # =====================================================
 # Helper Functions
 # =====================================================
@@ -466,6 +525,10 @@ def classify_solar_activity(f107):
 def classify_visibility(visibility, cloud_cover=None):
 
     if pd.isna(visibility):
+
+        if pd.isna(cloud_cover):
+            return "Unavailable"
+
         if cloud_cover <= 20:
             return "Excellent"
         elif cloud_cover <= 50:
@@ -1126,55 +1189,11 @@ else:
     aurora_df = None
 
 # -----------------------------
-# NOAA Solar Wind API
+# Real-time NOAA Space Weather
 # -----------------------------
 
-try:
-    url = "https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json"
-
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-    data = response.json()
-
-    latest_wind = data[0]
-
-    solar_wind = {
-        "speed": float(latest_wind["proton_speed"]),
-        "density": float(latest_wind["proton_density"]),
-        "temperature": float(latest_wind["proton_temperature"])
-    }
-
-except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
-    solar_wind = None
-# -----------------------------
-# NOAA Magnetic Field API
-# -----------------------------
-
-try:
-    url = "https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json"
-
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-    data = response.json()
-
-    latest_mag = data[0]
-
-    magnetic_field = {
-        "bx_gse": float(latest_mag["bx_gse"]),
-        "by_gse": float(latest_mag["by_gse"]),
-        "bz_gse": float(latest_mag["bz_gse"]),
-        "theta_gse": float(latest_mag["theta_gse"]),
-        "phi_gse": float(latest_mag["phi_gse"]),
-        "bx_gsm": float(latest_mag["bx_gsm"]),
-        "by_gsm": float(latest_mag["by_gsm"]),
-        "bz_gsm": float(latest_mag["bz_gsm"]),
-        "theta_gsm": float(latest_mag["theta_gsm"]),
-        "phi_gsm": float(latest_mag["phi_gsm"]),
-        "bt": float(latest_mag["bt"])
-    }
-
-except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
-    magnetic_field = None
+solar_wind = get_solar_wind()
+magnetic_field = get_magnetic_field()
 
 # =====================================================
 # Solar Cycle
@@ -1269,7 +1288,8 @@ components.html(
     <script>
     if (window.parent.innerWidth <= 768) {
 
-        setTimeout(() => {
+        const scrollCheck = setInterval(() => {
+
             const target =
                 window.parent.document.getElementById("forecast-results");
 
@@ -1278,9 +1298,11 @@ components.html(
                     behavior: "smooth",
                     block: "start"
                 });
-            }
-        }, 100);
 
+                clearInterval(scrollCheck);
+            }
+
+        }, 100);
     }
     </script>
     """,
