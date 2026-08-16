@@ -1042,18 +1042,25 @@ with st.sidebar.container(border=True):
         "Other...": None
     }
 
-    selection = st.selectbox(
-        "Destination",
-        list(destinations.keys())
-    )
+selection = st.selectbox(
+    "Destination",
+    list(destinations.keys())
+)
 
-    if selection == "Other...":
-        location = st.text_input(
-            "Enter a city",
-            placeholder="e.g. Kiruna, Sweden"
-        )
-    else:
-        location = destinations[selection]
+forecast_date = st.date_input(
+    "Forecast date",
+    value=date.today(),
+    min_value=date.today(),
+    max_value=date.today() + timedelta(days=44)
+)
+
+if selection == "Other...":
+    location = st.text_input(
+        "Enter a city",
+        placeholder="e.g. Kiruna, Sweden"
+    )
+else:
+    location = destinations[selection]
 
     forecast_date = st.date_input(
         "Forecast date",
