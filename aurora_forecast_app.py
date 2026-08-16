@@ -909,10 +909,17 @@ hr {
     background: rgba(103, 196, 177, 0.10);
     border: 1px solid rgba(137, 220, 202, 0.18);
     border-radius: 12px;
-    padding: 0.9rem 1rem;
+    padding: 0.9rem 1rem;que lineas....
+    
     margin-bottom: 1rem;
-    color: #d9f5ee;
+    color: #ffffff;
     font-size: 0.9rem;
+}
+
+.mobile-start-hint strong {
+    color: #ffffff !important;
+    font-size: 1.2rem;
+    font-weight: 900;
 }
 
     .block-container {
@@ -948,6 +955,14 @@ hr {
     [data-testid="stPlotlyChart"] {
         width: 100% !important;
     }
+
+    [data-baseweb="calendar"] {
+    max-width: calc(100vw - 2rem) !important;
+}
+
+[data-baseweb="popover"] {
+    max-width: 100vw !important;
+}
 }
 
 </style>
