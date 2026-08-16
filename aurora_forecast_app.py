@@ -1012,8 +1012,6 @@ st.markdown("""
         atmospheric conditions and real-time solar data.
     </p>
 </div>
-
-</style>
 """, unsafe_allow_html=True)
 
 st.markdown(
