@@ -1051,13 +1051,16 @@ with st.sidebar.container(border=True):
         list(destinations.keys())
     )
 
-    if selection == "Other...":
-        location = st.text_input(
-            "Enter a city",
-            placeholder="e.g. Kiruna, Sweden"
-        )
-    else:
-        location = destinations[selection]
+    city_input = st.text_input(
+    "Enter a city",
+    placeholder="e.g. Kiruna, Sweden",
+    disabled=selection != "Other..."
+)
+
+if selection == "Other...":
+    location = city_input
+else:
+    location = destinations[selection]
 
     forecast_date = st.date_input(
         "Forecast date",
