@@ -728,12 +728,20 @@ st.markdown("""
     background:
         radial-gradient(circle at 20% 0%, rgba(52, 145, 130, 0.10), transparent 35%),
         radial-gradient(circle at 80% 10%, rgba(72, 180, 170, 0.06), transparent 30%),
-        #07110f;
-    color: #f4f7f6;
+        #f3f8f6;
+    color: #10201d;
 }
 
 [data-testid="stHeader"] {
-    background: #07110f;
+    background: #f3f8f6;
+}
+
+[data-testid="stSidebar"] {
+    background: #eaf3f0;
+}
+
+[data-testid="stSidebarContent"] {
+    background: #eaf3f0;
 }
 
 [data-testid="stToolbar"] {
@@ -751,16 +759,16 @@ st.markdown("""
 /* ---------- Typography ---------- */
 
 h1, h2, h3 {
-    color: #f4f7f6 !important;
+    color: #10201d !important;
     letter-spacing: -0.02em;
 }
 
 p, label {
-    color: #f5f7f6 !important;
+    color: #10201d !important;
 }
 
 .stCaption {
-    color: #dfeae7 !important;
+    color: #2f7468 !important;
     opacity: 1 !important;
 }
 
@@ -852,7 +860,7 @@ p, label {
 
 hr {
     border: none;
-    border-top: 1px solid rgba(255,255,255,0.07);
+    border-top: 1px solid rgba(47, 116, 104, 0.18);
 }
 
 /* ---------- Metric Cards ---------- */
@@ -865,11 +873,11 @@ hr {
 }
 
 [data-testid="stMetricLabel"] {
-    color: #d9f5ee !important;
+    color: #2f7468 !important;
 }
 
 [data-testid="stMetricValue"] {
-    color: #f4fffc !important;
+    color: #10201d !important;
 }
 
 /* ---------- Location Card ---------- */
@@ -879,7 +887,7 @@ hr {
     border: 1px solid rgba(137, 220, 202, 0.20);
     border-radius: 16px;
     padding: 1.3rem;
-    color: #f4fffc;
+    color: #10201d;
 }
 
 /* ---------- Forecast Condition Cards ---------- */
@@ -894,21 +902,21 @@ hr {
 }
 
 .condition-title {
-    color: #d9f5ee;
+    color: #2f7468;
     font-size: 0.85rem;
     font-weight: 600;
     margin-bottom: 0.45rem;
 }
 
 .condition-value {
-    color: #ffffff;
+    color: #10201d;
     font-size: 1.35rem;
     font-weight: 600;
     margin-bottom: 0.55rem;
 }
 
 .condition-text {
-    color: #dfeae7;
+    color: #10201d;
     font-size: 0.85rem;
     line-height: 1.5;
 }
@@ -929,7 +937,7 @@ hr {
 }
 
 .ai-label {
-    color: #d9f5ee;
+    color: #2f7468;
     font-size: 0.8rem;
     font-weight: 600;
     letter-spacing: 0.08em;
@@ -937,21 +945,21 @@ hr {
 }
 
 .ai-status {
-    color: #ffffff;
+    color: #10201d;
     font-size: 1.45rem;
     font-weight: 650;
     margin-bottom: 1rem;
 }
 
 .ai-dst {
-    color: #ffffff;
+    color: #10201d;
     font-size: 2rem;
     font-weight: 650;
     margin-bottom: 0.4rem;
 }
 
 .ai-caption {
-    color: #dfeae7;
+    color: #10201d;
     font-size: 0.85rem;
     line-height: 1.5;
 }
@@ -959,7 +967,7 @@ hr {
 /* ---------- Forecast Eyebrow ---------- */
 
 .forecast-eyebrow {
-    color: #79d8c1;
+    color: #2f7468;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.14em;
@@ -982,17 +990,17 @@ hr {
     border-radius: 12px;
     padding: 0.9rem 1rem;
     margin-bottom: 1rem;
-    color: #ffffff;
+    color: #10201d;
     font-size: 0.9rem;
 }
 
 .mobile-start-hint strong {
-    color: #ffffff !important;
+    color: #10201d !important;
     font-size: 1.2rem;
     font-weight: 900;
 }
 [data-testid="stIconMaterial"] {
-    color: #ffffff !important;
+    color: #2f7468 !important;
 }
 
     .block-container {
@@ -1505,9 +1513,9 @@ else:
             mode="markers+text",
             marker=dict(
                 size=11,
-                color="white",
+                color="#10201d",
                 line=dict(
-                    color="#79d8c1",
+                    color="#2f7468",
                     width=3
                 )
             ),
@@ -1528,22 +1536,22 @@ else:
             lat=-latitude
         ),
         showland=True,
-        landcolor="#101b19",
+        landcolor="#d5e8e2",
         showocean=True,
-        oceancolor="#07110f",
+        oceancolor="#b7d4cc",
         showlakes=True,
-        lakecolor="#07110f",
+        lakecolor="#b7d4cc",
         showcountries=True,
-        countrycolor="#425854",
-        coastlinecolor="#536965",
-        bgcolor="#07110f"
+        countrycolor="#7a9e95",
+        coastlinecolor="#6b9188",
+        bgcolor="#f3f8f6"
     )
 
     fig.update_layout(
         height=600,
         margin=dict(l=0, r=0, t=10, b=0),
-        paper_bgcolor="#07110f",
-        plot_bgcolor="#07110f"
+        paper_bgcolor="#f3f8f6",
+        plot_bgcolor="#f3f8f6"
     )
 
     st.plotly_chart(
@@ -1555,7 +1563,7 @@ else:
     st.caption(
         f"NOAA short-term aurora forecast centered on "
         f"{coordinates['name']}. Brighter areas indicate stronger "
-        f"expected auroral activity. The white marker shows your destination."
+        f"expected auroral activity. The dark marker shows your destination."
     )
 
 

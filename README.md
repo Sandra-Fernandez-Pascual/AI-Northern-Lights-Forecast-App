@@ -4,9 +4,9 @@
 
 **An end-to-end data science project that combines Machine Learning, real-time space weather data and environmental forecasts to help users identify favourable conditions for observing the Northern Lights.**
 
-🔗 **Live App:** https://northern-lights-forecast.streamlit.app  
-🎤 **Final Presentation:** https://www.canva.com/design/DAHSKV9_810/SHlQImzLKEY5xYw1t5Kd4A/edit?ui=eyJBIjp7fX0  
-📋 **Project Planning:** https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack
+[![Live App](https://img.shields.io/badge/Live_App-Streamlit-2f7468?style=for-the-badge)](https://northern-lights-forecast.streamlit.app)
+[![Final Presentation](https://img.shields.io/badge/Final_Presentation-Canva-2f7468?style=for-the-badge)](https://www.canva.com/design/DAHSKV9_810/SHlQImzLKEY5xYw1t5Kd4A/edit?ui=eyJBIjp7fX0)
+[![Project Planning](https://img.shields.io/badge/Project_Planning-Trello-2f7468?style=for-the-badge)](https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack)
 
 ---
 
@@ -785,11 +785,9 @@ Potential future developments include:
 
 # 🔗 Project Links
 
-🌌 **Live Application**  
-https://northern-lights-forecast.streamlit.app
+[![Live Application](https://img.shields.io/badge/Live_Application-Streamlit-2f7468?style=for-the-badge)](https://northern-lights-forecast.streamlit.app)
 
-📋 **Trello Project Planning**  
-https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack
+[![Trello Project Planning](https://img.shields.io/badge/Trello_Project_Planning-Trello-2f7468?style=for-the-badge)](https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack)
 
 📊 **Historical Dataset**  
 https://www.kaggle.com/datasets/arashnic/soalr-wind/data
