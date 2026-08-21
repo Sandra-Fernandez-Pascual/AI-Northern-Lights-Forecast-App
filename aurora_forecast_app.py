@@ -6,8 +6,32 @@ import pydeck as pdk
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
 import joblib
+import time
+import os
 
 from datetime import datetime, timezone, date, timedelta
+
+_HTTP_HEADERS = {
+    "User-Agent": "NorthernLightsForecastApp/1.0"
+}
+
+
+def _get_json(url, timeout=60, retries=2):
+    for attempt in range(retries):
+        try:
+            response = requests.get(
+                url,
+                timeout=timeout,
+                headers=_HTTP_HEADERS
+            )
+            response.raise_for_status()
+            return response.json()
+        except (requests.RequestException, ValueError):
+            if attempt == retries - 1:
+                return None
+            time.sleep(0.5 * (attempt + 1))
+    return None
+
 
 # =====================================================
 # Functions
@@ -51,31 +75,54 @@ def get_coordinates(location):
 @st.cache_data(ttl=300, show_spinner=False)
 def get_aurora_oval():
 
-    url = "https://services.swpc.noaa.gov/json/ovation_aurora_latest.json"
+    data = _get_json(
+        "https://services.swpc.noaa.gov/json/ovation_aurora_latest.json",
+        timeout=90,
+        retries=2
+    )
+    if not data:
+        raise RuntimeError("NOAA aurora oval unavailable")
 
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        return response.json()
+    coords = data.get("coordinates") or data.get("Coordinates")
+    if not coords:
+        raise RuntimeError("NOAA aurora oval missing coordinates")
 
-    except requests.RequestException:
-        return None
+    data["coordinates"] = coords
+    return data
 
 
 def prepare_aurora_oval(data):
 
-    aurora_df = pd.DataFrame(
-        data["coordinates"],
-        columns=["longitude", "latitude", "intensity"]
+    coords = data["coordinates"]
+
+    if coords and isinstance(coords[0], dict):
+        aurora_df = pd.DataFrame(coords)
+        rename = {}
+        for column in aurora_df.columns:
+            name = str(column).lower()
+            if name in ("lon", "longitude", "long"):
+                rename[column] = "longitude"
+            elif name in ("lat", "latitude"):
+                rename[column] = "latitude"
+            elif name in ("aurora", "intensity", "value"):
+                rename[column] = "intensity"
+        aurora_df = aurora_df.rename(columns=rename)
+        aurora_df = aurora_df[["longitude", "latitude", "intensity"]]
+    else:
+        aurora_df = pd.DataFrame(
+            coords,
+            columns=["longitude", "latitude", "intensity"]
+        )
+
+    aurora_df["longitude"] = pd.to_numeric(aurora_df["longitude"], errors="coerce")
+    aurora_df["latitude"] = pd.to_numeric(aurora_df["latitude"], errors="coerce")
+    aurora_df["intensity"] = pd.to_numeric(aurora_df["intensity"], errors="coerce")
+    aurora_df = aurora_df.dropna()
+
+    aurora_df.loc[aurora_df["longitude"] > 180, "longitude"] = (
+        aurora_df.loc[aurora_df["longitude"] > 180, "longitude"] - 360
     )
 
-    # NOAA uses longitudes from 0 to 360.
-    # Convert them to the standard -180 to 180 map system.
-    aurora_df["longitude"] = aurora_df["longitude"].apply(
-        lambda x: x - 360 if x > 180 else x
-    )
-
-    # Northern Lights only
     aurora_df = aurora_df[
         (aurora_df["latitude"] >= 45) &
         (aurora_df["intensity"] >= 5)
@@ -90,60 +137,81 @@ def prepare_aurora_oval(data):
 def get_smoothed_ssn():
 
     url = "https://services.swpc.noaa.gov/json/solar-cycle/solar-cycle-25-predicted.json"
+    data = _get_json(url)
+
+    if not data:
+        return None
 
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-
-        latest = data[0]
-
-        return {
-            "smoothed_ssn": float(latest["smoothed_ssn"])
-        }
-
-    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
+        return {"smoothed_ssn": float(data[-1]["smoothed_ssn"])}
+    except (TypeError, ValueError, KeyError, IndexError):
         return None
 
 # -----------------------------
 # 45-Day Space Weather Forecast
 # -----------------------------
-@st.cache_data(ttl=3600, show_spinner=False)
-def get_space_weather_forecast(forecast_date):
+@st.cache_data(ttl=1800, show_spinner=False)
+def _space_weather_rows():
 
     url = "https://services.swpc.noaa.gov/json/45-day-forecast.json"
+    payload = _get_json(url)
+
+    if not payload or "data" not in payload:
+        raise RuntimeError("NOAA 45-day forecast unavailable")
+
+    return payload["data"]
+
+
+def get_space_weather_forecast(forecast_date):
 
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        forecast = response.json()["data"]
+        rows = _space_weather_rows()
+    except (RuntimeError, TypeError, ValueError, KeyError):
+        return None
 
-        target_date = forecast_date.strftime("%Y-%m-%d")
+    if isinstance(forecast_date, datetime):
+        target = forecast_date.date()
+    else:
+        target = forecast_date
 
-        ap_today = None
-        f107_today = None
+    by_date = {}
 
-        for item in forecast:
+    for item in rows:
+        try:
+            item_date = datetime.fromisoformat(
+                str(item["time"]).replace("Z", "+00:00")
+            ).date()
+            metric = item.get("metric")
+            value = item.get("value")
+        except (TypeError, ValueError, KeyError):
+            continue
 
-            item_date = item["time"][:10]
+        if metric not in ("ap", "f107") or value is None:
+            continue
 
-            if item_date == target_date:
+        by_date.setdefault(item_date, {})[metric] = value
 
-                if item["metric"] == "ap":
-                    ap_today = item["value"]
+    if not by_date:
+        return None
 
-                elif item["metric"] == "f107":
-                    f107_today = item["value"]
-
-        if ap_today is None or f107_today is None:
+    if target in by_date:
+        chosen = target
+    else:
+        chosen = min(by_date, key=lambda day: abs((day - target).days))
+        if abs((chosen - target).days) > 1:
             return None
 
-        return {
-            "ap_today": float(ap_today),
-            "f107_today": float(f107_today)
-        }
+    values = by_date[chosen]
 
-    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
+    if "ap" not in values or "f107" not in values:
+        return None
+
+    try:
+        return {
+            "ap_today": float(values["ap"]),
+            "f107_today": float(values["f107"])
+        }
+    except (TypeError, ValueError):
         return None
         
 # -----------------------------
@@ -172,21 +240,20 @@ def get_environment(latitude, longitude, forecast_date):
             f"&timezone=auto"
         )
 
-        try:
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()
-            data = response.json()
+        data = _get_json(url)
 
-        except (requests.RequestException, ValueError, KeyError, TypeError):
+        if not data or "hourly" not in data or "time" not in data["hourly"]:
             return None
 
-        if "hourly" not in data:
-            return None
+        hourly = data["hourly"]
+        times = hourly["time"]
+        clouds = hourly.get("cloud_cover") or [np.nan] * len(times)
+        visibility = hourly.get("visibility") or [np.nan] * len(times)
 
         weather_df = pd.DataFrame({
-            "time": pd.to_datetime(data["hourly"]["time"]),
-            "cloud_cover": data["hourly"]["cloud_cover"],
-            "visibility": data["hourly"]["visibility"]
+            "time": pd.to_datetime(times),
+            "cloud_cover": clouds,
+            "visibility": visibility
         })
 
         weather_df = weather_df[
@@ -200,6 +267,16 @@ def get_environment(latitude, longitude, forecast_date):
                 (weather_df["time"].dt.hour <= 3)
             )
         ].copy()
+
+        if weather_df.empty:
+            weather_df = pd.DataFrame({
+                "time": pd.to_datetime(times),
+                "cloud_cover": clouds,
+                "visibility": visibility
+            })
+            weather_df = weather_df[
+                weather_df["time"].dt.date == forecast_date
+            ].copy()
 
         weather_source = "forecast"
 
@@ -229,21 +306,20 @@ def get_environment(latitude, longitude, forecast_date):
                 f"&timezone=auto"
             )
 
-            try:
-                response = requests.get(url, timeout=10)
-                response.raise_for_status()
-                data = response.json()
+            data = _get_json(url)
 
-            except (requests.RequestException, ValueError, KeyError, TypeError):
+            if not data or "hourly" not in data or "time" not in data["hourly"]:
                 continue
 
-            if "hourly" not in data:
-                continue
+            hourly = data["hourly"]
+            times = hourly["time"]
+            clouds = hourly.get("cloud_cover") or [np.nan] * len(times)
+            visibility = hourly.get("visibility") or [np.nan] * len(times)
 
             df = pd.DataFrame({
-                "time": pd.to_datetime(data["hourly"]["time"]),
-                "cloud_cover": data["hourly"]["cloud_cover"],
-                "visibility": data["hourly"]["visibility"]
+                "time": pd.to_datetime(times),
+                "cloud_cover": clouds,
+                "visibility": visibility
             })
 
             df = df[
@@ -324,23 +400,47 @@ def get_environment(latitude, longitude, forecast_date):
 # -----------------------------
 # Sunrise-Sunset API
 # -----------------------------
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_sun_data(latitude, longitude, forecast_date):
 
     sun_url = (
-        "https://api.sunrise-sunset.org/v2"
+        "https://api.sunrise-sunset.org/json"
         f"?lat={latitude}"
         f"&lng={longitude}"
         f"&date={forecast_date.isoformat()}"
+        "&formatted=0"
     )
 
-    try:
-        sun_response = requests.get(sun_url, timeout=10)
-        sun_response.raise_for_status()
-        return sun_response.json()
+    payload = _get_json(sun_url)
 
-    except (requests.RequestException, ValueError, KeyError, TypeError):
+    if not payload:
         return None
+
+    inner = payload.get("data") or payload.get("results") or payload
+
+    if not isinstance(inner, dict):
+        return None
+
+    begin = inner.get("astronomical_twilight_begin")
+    end = inner.get("astronomical_twilight_end")
+
+    if begin in ("None", ""):
+        begin = None
+    if end in ("None", ""):
+        end = None
+
+    sun_status = inner.get("sun_status")
+    if sun_status not in ("midnight_sun", "polar_night", "normal"):
+        if begin is None and end is None:
+            sun_status = "midnight_sun"
+        else:
+            sun_status = "normal"
+
+    return {
+        "sun_status": sun_status,
+        "astronomical_twilight_begin": begin,
+        "astronomical_twilight_end": end,
+    }
 
 # -----------------------------
 # NOAA Solar Wind API
@@ -349,22 +449,20 @@ def get_sun_data(latitude, longitude, forecast_date):
 @st.cache_data(ttl=120, show_spinner=False)
 def get_solar_wind():
 
+    data = _get_json(
+        "https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json"
+    )
+    if not data:
+        return None
+
     try:
-        url = "https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json"
-
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-
-        latest_wind = data[0]
-
+        latest = data[0]
         return {
-            "speed": float(latest_wind["proton_speed"]),
-            "density": float(latest_wind["proton_density"]),
-            "temperature": float(latest_wind["proton_temperature"])
+            "speed": float(latest["proton_speed"]),
+            "density": float(latest["proton_density"]),
+            "temperature": float(latest["proton_temperature"]),
         }
-
-    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
+    except (TypeError, ValueError, KeyError, IndexError):
         return None
 
 
@@ -375,30 +473,26 @@ def get_solar_wind():
 @st.cache_data(ttl=120, show_spinner=False)
 def get_magnetic_field():
 
+    data = _get_json("https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json")
+    if not data:
+        return None
+
     try:
-        url = "https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json"
-
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-
-        latest_mag = data[0]
-
+        latest = data[0]
         return {
-            "bx_gse": float(latest_mag["bx_gse"]),
-            "by_gse": float(latest_mag["by_gse"]),
-            "bz_gse": float(latest_mag["bz_gse"]),
-            "theta_gse": float(latest_mag["theta_gse"]),
-            "phi_gse": float(latest_mag["phi_gse"]),
-            "bx_gsm": float(latest_mag["bx_gsm"]),
-            "by_gsm": float(latest_mag["by_gsm"]),
-            "bz_gsm": float(latest_mag["bz_gsm"]),
-            "theta_gsm": float(latest_mag["theta_gsm"]),
-            "phi_gsm": float(latest_mag["phi_gsm"]),
-            "bt": float(latest_mag["bt"])
+            "bx_gse": float(latest["bx_gse"]),
+            "by_gse": float(latest["by_gse"]),
+            "bz_gse": float(latest["bz_gse"]),
+            "theta_gse": float(latest["theta_gse"]),
+            "phi_gse": float(latest["phi_gse"]),
+            "bx_gsm": float(latest["bx_gsm"]),
+            "by_gsm": float(latest["by_gsm"]),
+            "bz_gsm": float(latest["bz_gsm"]),
+            "theta_gsm": float(latest["theta_gsm"]),
+            "phi_gsm": float(latest["phi_gsm"]),
+            "bt": float(latest["bt"]),
         }
-
-    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
+    except (TypeError, ValueError, KeyError, IndexError):
         return None
 
 # =====================================================
@@ -412,11 +506,11 @@ def get_magnetic_field():
 def classify_darkness(sun_data):
 
     # Polar day: no real darkness
-    if sun_data["sun_status"] == "midnight_sun":
+    if sun_data.get("sun_status") == "midnight_sun":
         return "Poor"
 
     # Polar night: darkness all day
-    if sun_data["sun_status"] == "polar_night":
+    if sun_data.get("sun_status") == "polar_night":
         return "Excellent"
 
     astronomical_begin = sun_data.get("astronomical_twilight_begin")
@@ -427,8 +521,11 @@ def classify_darkness(sun_data):
     if astronomical_begin is None or astronomical_end is None:
         return "Poor"
 
-    astronomical_begin = datetime.fromisoformat(astronomical_begin)
-    astronomical_end = datetime.fromisoformat(astronomical_end)
+    try:
+        astronomical_begin = datetime.fromisoformat(astronomical_begin)
+        astronomical_end = datetime.fromisoformat(astronomical_end)
+    except (TypeError, ValueError):
+        return "Poor"
 
     dark_hours = 24 - (
         astronomical_end - astronomical_begin
@@ -577,6 +674,9 @@ def classify_dst(dst):
 
 def cloud_comment(cloud_cover):
 
+    if pd.isna(cloud_cover):
+        return "Cloud cover estimate unavailable."
+
     if cloud_cover <= 20:
         return "Perfect conditions! Hardly any clouds to block the view."
 
@@ -649,10 +749,13 @@ def estimate_aurora_probability(
     else:
         darkness_factor = 0.1
 
-    cloud_factor = max(
-        0.05,
-        1 - environment["cloud_cover"] / 100
-    )
+    if pd.isna(environment["cloud_cover"]):
+        cloud_factor = 0.5
+    else:
+        cloud_factor = max(
+            0.05,
+            1 - environment["cloud_cover"] / 100
+        )
 
     if pd.isna(environment["visibility"]):
         visibility_factor = 1.0
@@ -732,12 +835,207 @@ st.markdown("""
     color: #f4f7f6;
 }
 
+html, body, [data-testid="stAppViewContainer"] {
+    color-scheme: dark;
+    background-color: #07110f !important;
+    color: #f4f7f6 !important;
+}
+
 [data-testid="stHeader"] {
-    background: #07110f;
+    background: transparent;
 }
 
 [data-testid="stToolbar"] {
     background: transparent;
+}
+
+[data-testid="stAppViewContainer"] > .main {
+    position: relative;
+    z-index: 1;
+}
+
+[data-testid="stSidebar"] {
+    z-index: 2;
+    background-color: #07110f !important;
+}
+
+[data-testid="stSidebar"] > div:first-child,
+[data-testid="stSidebarContent"],
+section[data-testid="stSidebar"] {
+    background-color: #07110f !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] span {
+    color: #e8eeea !important;
+}
+
+[data-testid="stPlotlyChart"],
+[data-testid="stPlotlyChart"] > div,
+.js-plotly-plot,
+.plot-container {
+    background: transparent !important;
+}
+
+/* ---------- Night sky: stars, shooting stars, aurora ---------- */
+
+.night-sky {
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.night-sky .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: #e8fff8;
+    opacity: 0.7;
+    box-shadow: 0 0 5px rgba(215, 255, 244, 0.7);
+    animation: twinkle 4.8s ease-in-out infinite;
+}
+
+.aurora-curtain {
+    position: absolute;
+    left: -25%;
+    width: 150%;
+    height: 70%;
+    filter: blur(38px);
+    mix-blend-mode: screen;
+    opacity: 0.75;
+}
+
+.aurora-curtain-1 {
+    top: -12%;
+    background: linear-gradient(
+        115deg,
+        transparent 8%,
+        rgba(72, 255, 168, 0.72) 32%,
+        rgba(46, 210, 140, 0.35) 52%,
+        transparent 74%
+    );
+    animation: aurora-drift 14s ease-in-out infinite;
+}
+
+.aurora-curtain-2 {
+    top: -2%;
+    height: 62%;
+    background: linear-gradient(
+        98deg,
+        transparent 18%,
+        rgba(168, 92, 255, 0.62) 38%,
+        rgba(255, 86, 176, 0.5) 54%,
+        transparent 78%
+    );
+    animation: aurora-drift 19s ease-in-out infinite reverse;
+}
+
+.aurora-curtain-3 {
+    top: 6%;
+    height: 55%;
+    background: linear-gradient(
+        78deg,
+        transparent 6%,
+        rgba(64, 170, 255, 0.58) 28%,
+        rgba(90, 240, 220, 0.4) 48%,
+        transparent 70%
+    );
+    animation: aurora-drift 17s ease-in-out infinite;
+    animation-delay: -5s;
+}
+
+.aurora-curtain-4 {
+    top: 10%;
+    height: 48%;
+    background: linear-gradient(
+        130deg,
+        transparent 22%,
+        rgba(255, 120, 90, 0.32) 40%,
+        rgba(255, 70, 140, 0.4) 55%,
+        transparent 76%
+    );
+    animation: aurora-drift 21s ease-in-out infinite reverse;
+    animation-delay: -9s;
+}
+
+.shooting-star {
+    position: absolute;
+    top: 8%;
+    left: -12%;
+    width: 90px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d7fff4, transparent);
+    opacity: 0;
+    animation: shoot 11s ease-in-out infinite;
+}
+
+.shooting-star-2 {
+    top: 24%;
+    width: 70px;
+    animation: shoot-2 14s ease-in-out infinite;
+    animation-delay: 5.5s;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.25; transform: scale(0.8); }
+    50% { opacity: 0.95; transform: scale(1.2); }
+}
+
+@keyframes shoot {
+    0% { transform: translate(0, 0) rotate(18deg); opacity: 0; }
+    8% { opacity: 0.9; }
+    28% { transform: translate(85vw, 28vh) rotate(18deg); opacity: 0; }
+    100% { transform: translate(85vw, 28vh) rotate(18deg); opacity: 0; }
+}
+
+@keyframes shoot-2 {
+    0% { transform: translate(0, 0) rotate(28deg); opacity: 0; }
+    10% { opacity: 0.7; }
+    32% { transform: translate(70vw, 38vh) rotate(28deg); opacity: 0; }
+    100% { transform: translate(70vw, 38vh) rotate(28deg); opacity: 0; }
+}
+
+@keyframes aurora-drift {
+    0%, 100% {
+        transform: translateX(-4%) translateY(0) skewX(-12deg) scaleY(1);
+        opacity: 0.55;
+    }
+    50% {
+        transform: translateX(8%) translateY(12%) skewX(10deg) scaleY(1.15);
+        opacity: 0.9;
+    }
+}
+
+.aurora-header {
+    margin: 0.4rem 0 1.6rem 0;
+}
+
+.aurora-eyebrow {
+    display: inline-block;
+    color: #f4fffc !important;
+    background: rgba(7, 17, 15, 0.9);
+    border: 1px solid rgba(137, 220, 202, 0.28);
+    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    margin-bottom: 0.45rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .night-sky .star,
+    .aurora-curtain,
+    .shooting-star,
+    .stButton > button {
+        animation: none;
+    }
+    .shooting-star {
+        display: none;
+    }
 }
 
 /* ---------- Main container ---------- */
@@ -753,6 +1051,7 @@ st.markdown("""
 h1, h2, h3 {
     color: #f4f7f6 !important;
     letter-spacing: -0.02em;
+    text-shadow: 0 1px 10px #07110f;
 }
 
 p, label {
@@ -762,12 +1061,13 @@ p, label {
 .stCaption {
     color: #dfeae7 !important;
     opacity: 1 !important;
+    text-shadow: 0 1px 8px #07110f;
 }
 
 /* ---------- Sidebar Title ---------- */
 
 .sidebar-title {
-    color: #2f7468 !important;
+    color: #79d8c1 !important;
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -778,15 +1078,24 @@ p, label {
 
 [data-testid="stSidebar"] label,
 [data-testid="stSidebar"] label p {
-    color: #2f7468 !important;
+    color: #d9f5ee !important;
     font-weight: 700 !important;
     opacity: 1 !important;
 }
 
 [data-testid="stSidebar"] [data-testid="stCaptionContainer"],
 [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {
-    color: #2f7468 !important;
+    color: #9ecdc2 !important;
     opacity: 1 !important;
+}
+
+[data-testid="stSidebar"] hr {
+    border-top: 1px solid rgba(226, 232, 228, 0.16);
+}
+
+[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
+    background: rgba(10, 22, 20, 0.92);
+    border-color: rgba(121, 216, 193, 0.22) !important;
 }
 
 /* ---------- Destination ---------- */
@@ -831,21 +1140,64 @@ p, label {
 .stButton > button {
     width: 100%;
     border-radius: 12px;
-    border: 1px solid rgba(118, 210, 188, 0.25);
-    background: linear-gradient(
-        135deg,
-        rgba(64, 157, 137, 0.95),
-        rgba(47, 116, 104, 0.95)
-    );
-    color: white;
+    border: 1px solid rgba(226, 232, 228, 0.45);
+    background-image:
+        linear-gradient(
+            180deg,
+            rgba(244, 247, 246, 0.42) 0%,
+            rgba(244, 247, 246, 0.08) 38%,
+            transparent 58%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(64, 157, 137, 0.98),
+            rgba(47, 116, 104, 0.98)
+        );
+    color: #f4f7f6;
     font-weight: 600;
-    padding: 0.7rem 1rem;
+    padding: 0.55rem 0.7rem !important;
+    min-height: 0 !important;
+    height: auto !important;
+    line-height: 1.15 !important;
+    font-size: 0.84rem !important;
+    white-space: nowrap !important;
+    overflow: hidden;
+    box-shadow:
+        0 0 12px rgba(226, 232, 228, 0.5),
+        0 0 26px rgba(121, 216, 193, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    animation: button-glow 2.8s ease-in-out infinite;
     transition: all 0.2s ease;
+}
+
+.stButton > button p {
+    white-space: nowrap !important;
+    font-size: 0.84rem !important;
+    color: #f4f7f6 !important;
 }
 
 .stButton > button:hover {
     transform: translateY(-1px);
-    border-color: rgba(150, 235, 210, 0.45);
+    border-color: rgba(244, 247, 246, 0.7);
+    box-shadow:
+        0 0 18px rgba(226, 232, 228, 0.7),
+        0 0 34px rgba(121, 216, 193, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+@keyframes button-glow {
+    0%, 100% {
+        box-shadow:
+            0 0 10px rgba(226, 232, 228, 0.4),
+            0 0 22px rgba(121, 216, 193, 0.28),
+            inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+    50% {
+        box-shadow:
+            0 0 18px rgba(244, 247, 246, 0.7),
+            0 0 36px rgba(121, 216, 193, 0.48),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
 }
 
 /* ---------- Dividers ---------- */
@@ -858,7 +1210,9 @@ hr {
 /* ---------- Metric Cards ---------- */
 
 [data-testid="stMetric"] {
-    background: rgba(103, 196, 177, 0.12);
+    background:
+        linear-gradient(rgba(103, 196, 177, 0.12), rgba(103, 196, 177, 0.12)),
+        #07110f;
     border: 1px solid rgba(137, 220, 202, 0.20);
     border-radius: 16px;
     padding: 1.3rem;
@@ -875,7 +1229,9 @@ hr {
 /* ---------- Location Card ---------- */
 
 .location-card {
-    background: rgba(103, 196, 177, 0.12);
+    background:
+        linear-gradient(rgba(103, 196, 177, 0.12), rgba(103, 196, 177, 0.12)),
+        #07110f;
     border: 1px solid rgba(137, 220, 202, 0.20);
     border-radius: 16px;
     padding: 1.3rem;
@@ -885,7 +1241,9 @@ hr {
 /* ---------- Forecast Condition Cards ---------- */
 
 .condition-card {
-    background: rgba(103, 196, 177, 0.08);
+    background:
+        linear-gradient(rgba(103, 196, 177, 0.08), rgba(103, 196, 177, 0.08)),
+        #07110f;
     border: 1px solid rgba(137, 220, 202, 0.16);
     border-radius: 16px;
     padding: 1.25rem;
@@ -921,7 +1279,8 @@ hr {
             135deg,
             rgba(103, 196, 177, 0.10),
             rgba(82, 126, 145, 0.08)
-        );
+        ),
+        #07110f;
     border: 1px solid rgba(137, 220, 202, 0.18);
     border-radius: 18px;
     padding: 1.6rem;
@@ -959,9 +1318,14 @@ hr {
 /* ---------- Forecast Eyebrow ---------- */
 
 .forecast-eyebrow {
-    color: #79d8c1;
+    display: inline-block;
+    color: #f4fffc !important;
+    background: rgba(7, 17, 15, 0.9);
+    border: 1px solid rgba(137, 220, 202, 0.28);
+    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.14em;
     margin-top: 1.5rem;
     margin-bottom: 0.8rem;
@@ -977,7 +1341,9 @@ hr {
 
 .mobile-start-hint {
     display: block;
-    background: rgba(103, 196, 177, 0.10);
+    background:
+        linear-gradient(rgba(103, 196, 177, 0.10), rgba(103, 196, 177, 0.10)),
+        #07110f;
     border: 1px solid rgba(137, 220, 202, 0.18);
     border-radius: 12px;
     padding: 0.9rem 1rem;
@@ -1029,28 +1395,107 @@ hr {
         width: 100% !important;
     }
 
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+        min-width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+
+    .aurora-header {
+        margin-bottom: 1rem;
+    }
+
+    .aurora-header h1 {
+        font-size: 1.85rem !important;
+    }
+
+    .stButton > button,
+    .stButton > button p {
+        padding: 0.55rem 0.7rem !important;
+        min-height: 0 !important;
+        height: auto !important;
+        font-size: 0.84rem !important;
+        white-space: nowrap !important;
+    }
+
+    [data-testid="stSidebar"],
+    [data-testid="stSidebarContent"],
+    section[data-testid="stSidebar"] {
+        background-color: #07110f !important;
+    }
+
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] label p {
+        color: #d9f5ee !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {
+        color: #9ecdc2 !important;
+    }
+
+    .aurora-eyebrow,
+    .forecast-eyebrow {
+        color: #f4fffc !important;
+        background: rgba(7, 17, 15, 0.9);
+        font-size: 0.75rem;
+    }
+
+    [data-testid="stPlotlyChart"],
+    [data-testid="stPlotlyChart"] > div,
+    .js-plotly-plot,
+    .plot-container {
+        background: transparent !important;
+    }
+
 }
 
 </style>
 """, unsafe_allow_html=True)
 
+
+def _night_sky_html():
+    spots = [
+        (8, 12, 0), (22, 28, 1.1), (41, 9, 0.4), (63, 18, 1.8),
+        (81, 7, 0.7), (91, 32, 2.2), (14, 44, 1.4), (35, 61, 0.2),
+        (58, 48, 2.6), (77, 70, 0.9), (5, 78, 1.7), (48, 22, 3.1),
+        (70, 40, 0.3), (88, 58, 2.0), (28, 86, 1.2), (52, 80, 2.4),
+        (16, 18, 0.6), (84, 14, 1.9),
+    ]
+    stars = "".join(
+        f'<span class="star" style="left:{left}%;top:{top}%;animation-delay:{delay}s;"></span>'
+        for left, top, delay in spots
+    )
+    return (
+        '<div class="night-sky">'
+        + stars
+        + '<div class="aurora-curtain aurora-curtain-1"></div>'
+        + '<div class="aurora-curtain aurora-curtain-2"></div>'
+        + '<div class="aurora-curtain aurora-curtain-3"></div>'
+        + '<div class="aurora-curtain aurora-curtain-4"></div>'
+        + '<div class="shooting-star"></div>'
+        + '<div class="shooting-star shooting-star-2"></div>'
+        + "</div>"
+    )
+
+st.markdown(_night_sky_html(), unsafe_allow_html=True)
+
 # -----------------------------
 # Load Machine Learning model
 # -----------------------------
 
-import os
-
 MODEL_PATH = "random_forest_model_compressed.pkl"
+
 
 @st.cache_resource
 def load_model():
 
     if not os.path.exists(MODEL_PATH):
-        url = st.secrets["model_url"]
-
-        response = requests.get(url, timeout=30)
+        response = requests.get(st.secrets["model_url"], timeout=120)
         response.raise_for_status()
-
         with open(MODEL_PATH, "wb") as f:
             f.write(response.content)
 
@@ -1063,7 +1508,7 @@ def load_model():
 try:
     model, model_columns = load_model()
 
-except (requests.RequestException, OSError, ValueError, EOFError):
+except Exception:
     model = None
     model_columns = None
     
@@ -1181,11 +1626,9 @@ st.markdown(
 )
 
 
-aurora_data = get_aurora_oval()
-
-if aurora_data is not None:
-    aurora_df = prepare_aurora_oval(aurora_data)
-else:
+try:
+    aurora_df = prepare_aurora_oval(get_aurora_oval())
+except Exception:
     aurora_df = None
 
 # -----------------------------
@@ -1254,7 +1697,10 @@ if (
 
     model_input = model_input.reindex(columns=model_columns)
 
-    prediction = model.predict(model_input)[0]
+    try:
+        prediction = model.predict(model_input)[0]
+    except (ValueError, TypeError):
+        prediction = None
 
 # =====================================================
 # Aurora Forecast
@@ -1266,12 +1712,16 @@ if environment is None or sun_data is None:
     st.warning("Environmental forecast data temporarily unavailable.")
 
 if forecast is not None and environment is not None and sun_data is not None:
-    result = estimate_aurora_probability(
-        forecast,
-        environment,
-        sun_data,
-        latitude
-    )
+    try:
+        result = estimate_aurora_probability(
+            forecast,
+            environment,
+            sun_data,
+            latitude
+        )
+    except (TypeError, ValueError, KeyError):
+        result = None
+        st.warning("Environmental forecast data temporarily unavailable.")
 
 # =====================================================
 # Results
@@ -1357,11 +1807,17 @@ if result is not None:
         else "☁️ TYPICAL CLOUD COVER"
     )
 
+    cloud_value = (
+        "—"
+        if pd.isna(environment["cloud_cover"])
+        else f"{environment['cloud_cover']:.0f}%"
+    )
+
     with col2:
         st.markdown(f"""
         <div class="condition-card">
             <div class="condition-title">{cloud_title}</div>
-            <div class="condition-value">{environment['cloud_cover']:.0f}%</div>
+            <div class="condition-value">{cloud_value}</div>
             <div class="condition-text">
                 {cloud_comment(environment["cloud_cover"])}
             </div>
@@ -1425,7 +1881,6 @@ if result is not None:
 st.subheader("Today's AI Aurora Estimate")
 
 if prediction is None:
-
     st.warning("Real-time AI estimate temporarily unavailable.")
 
 else:
@@ -1486,11 +1941,18 @@ else:
                     [1.0, "#d7fff4"]
                 ],
                 cmin=5,
-                cmax=max(aurora_df["intensity"].max(), 10),
+                cmax=float(max(aurora_df["intensity"].max(), 10))
+                if not aurora_df.empty
+                else 10,
                 opacity=0.75,
                 colorbar=dict(
-                    title="Aurora<br>Intensity",
-                    thickness=12
+                    title=dict(
+                        text="Aurora<br>Intensity",
+                        font=dict(color="#dfeae7")
+                    ),
+                    thickness=12,
+                    bgcolor="rgba(0,0,0,0)",
+                    tickfont=dict(color="#dfeae7")
                 )
             ),
             hovertemplate="Aurora intensity: %{marker.color}<extra></extra>",
@@ -1528,22 +1990,24 @@ else:
             lat=-latitude
         ),
         showland=True,
-        landcolor="#101b19",
+        landcolor="#1a433b",
         showocean=True,
-        oceancolor="#07110f",
+        oceancolor="#102e28",
         showlakes=True,
-        lakecolor="#07110f",
+        lakecolor="#102e28",
         showcountries=True,
-        countrycolor="#425854",
-        coastlinecolor="#536965",
-        bgcolor="#07110f"
+        countrycolor="#5d8f84",
+        coastlinecolor="#79d8c1",
+        bgcolor="rgba(0,0,0,0)",
+        showframe=False
     )
 
     fig.update_layout(
         height=600,
         margin=dict(l=0, r=0, t=10, b=0),
-        paper_bgcolor="#07110f",
-        plot_bgcolor="#07110f"
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#dfeae7")
     )
 
     st.plotly_chart(
