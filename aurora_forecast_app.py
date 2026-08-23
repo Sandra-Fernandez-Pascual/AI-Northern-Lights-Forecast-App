@@ -1061,7 +1061,7 @@ section[data-testid="stSidebar"] {
 .plot-container,
 .svg-container {
     background: transparent !important;
-    touch-action: none;
+    touch-action: pan-y;
 }
 
 /* ---------- Night sky: stars, shooting stars, aurora ---------- */
@@ -1581,7 +1581,7 @@ hr {
     [data-testid="stPlotlyChart"] {
         width: 100% !important;
         max-width: 100%;
-        touch-action: none;
+        touch-action: pan-y;
     }
 
     [data-testid="stPlotlyChart"] .js-plotly-plot,
@@ -1589,7 +1589,7 @@ hr {
     [data-testid="stPlotlyChart"] .svg-container {
         width: 100% !important;
         max-width: 100% !important;
-        touch-action: none;
+        touch-action: pan-y;
     }
 
     [data-testid="stHorizontalBlock"] {
@@ -1646,7 +1646,7 @@ hr {
     .js-plotly-plot,
     .plot-container {
         background: transparent !important;
-        touch-action: none;
+        touch-action: pan-y;
     }
 
 }
@@ -1967,28 +1967,34 @@ if result is not None:
 
     st.subheader("Estimated chance of observing the Northern Lights")
 
-    st.metric(
-        label="Estimated Observation Chance",
-        value=f"{result['probability']}%"
-    )
+    if result["probability"] < 20:
+        st.warning(
+            "The chances of observing the Northern Lights are less than 20% "
+            "for this date and location."
+        )
+    else:
+        st.metric(
+            label="Estimated Observation Chance",
+            value=f"{result['probability']}%"
+        )
+
+        if result["best_time"] == SKY_TOO_BRIGHT:
+            st.warning(
+                "No useful viewing time on this date because of the current season: "
+                "at this latitude the sky does not get dark enough "
+                "(midnight sun or white nights). "
+                "Aurora would be washed out even with clear skies."
+            )
+        elif result["best_time"] != "Weather estimate unavailable":
+            st.metric(
+                label="Best Viewing Time",
+                value=result["best_time"]
+            )
 
     st.caption(
         "Estimation based on forecast geomagnetic activity (Ap), "
         "location, sky darkness, cloud cover and visibility."
     )
-
-    if result["best_time"] == SKY_TOO_BRIGHT:
-        st.warning(
-            "No useful viewing time on this date because of the current season: "
-            "at this latitude the sky does not get dark enough "
-            "(midnight sun or white nights). "
-            "Aurora would be washed out even with clear skies."
-        )
-    elif result["best_time"] != "Weather estimate unavailable":
-        st.metric(
-            label="Best Viewing Time",
-            value=result["best_time"]
-        )
 
     st.markdown("---")
 
@@ -2236,10 +2242,65 @@ else:
         }
     )
 
+    components.html(
+        """
+        <script>
+        (function() {
+            const doc = window.parent.document;
+            const opts = { capture: true, passive: false };
+
+            if (doc._globeTouchHandler) {
+                doc.removeEventListener("wheel", doc._globeTouchHandler.wheel, opts);
+                doc.removeEventListener("touchstart", doc._globeTouchHandler.touchStart, opts);
+                doc.removeEventListener("touchmove", doc._globeTouchHandler.touchMove, opts);
+            }
+
+            function onGlobe(target) {
+                return target && target.closest &&
+                    target.closest('[data-testid="stPlotlyChart"]');
+            }
+
+            function onWheel(event) {
+                if (onGlobe(event.target)) {
+                    event.preventDefault();
+                }
+            }
+
+            function onTouchStart(event) {
+                if (!onGlobe(event.target)) return;
+                if (event.touches.length < 2) {
+                    event.stopImmediatePropagation();
+                }
+            }
+
+            function onTouchMove(event) {
+                if (!onGlobe(event.target)) return;
+                if (event.touches.length < 2) {
+                    event.stopImmediatePropagation();
+                } else {
+                    event.preventDefault();
+                }
+            }
+
+            doc._globeTouchHandler = {
+                wheel: onWheel,
+                touchStart: onTouchStart,
+                touchMove: onTouchMove
+            };
+            doc.addEventListener("wheel", onWheel, opts);
+            doc.addEventListener("touchstart", onTouchStart, opts);
+            doc.addEventListener("touchmove", onTouchMove, opts);
+        })();
+        </script>
+        """,
+        height=0
+    )
+
     st.caption(
         f"NOAA short-term aurora oval centered on {coordinates['name']}. "
-        f"Drag to turn the globe, pinch or scroll to zoom. "
-        f"Double-tap to return to your destination. "
+        f"On a phone, swipe to scroll the page; use two fingers to turn the globe "
+        f"and pinch to zoom. On desktop, drag to turn and scroll to zoom. "
+        f"Double-click to return to your destination. "
         f"Brighter areas mean stronger expected auroral activity."
     )
 
