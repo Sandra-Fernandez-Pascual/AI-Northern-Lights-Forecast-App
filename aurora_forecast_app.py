@@ -876,12 +876,7 @@ section[data-testid="stSidebar"] {
 .plot-container,
 .svg-container {
     background: transparent !important;
-    touch-action: none;
-    overscroll-behavior: contain;
-}
-
-[data-testid="stPlotlyChart"] {
-    overflow: hidden;
+    touch-action: pan-y;
 }
 
 /* ---------- Night sky: stars, shooting stars, aurora ---------- */
@@ -1401,9 +1396,7 @@ hr {
     [data-testid="stPlotlyChart"] {
         width: 100% !important;
         max-width: 100%;
-        overflow: hidden;
-        touch-action: none;
-        overscroll-behavior: contain;
+        touch-action: pan-y;
     }
 
     [data-testid="stPlotlyChart"] .js-plotly-plot,
@@ -1411,8 +1404,7 @@ hr {
     [data-testid="stPlotlyChart"] .svg-container {
         width: 100% !important;
         max-width: 100% !important;
-        touch-action: none;
-        overscroll-behavior: contain;
+        touch-action: pan-y;
     }
 
     [data-testid="stHorizontalBlock"] {
@@ -1469,8 +1461,7 @@ hr {
     .js-plotly-plot,
     .plot-container {
         background: transparent !important;
-        touch-action: none;
-        overscroll-behavior: contain;
+        touch-action: pan-y;
     }
 
 }
@@ -2059,27 +2050,33 @@ else:
         <script>
         (function() {
             const doc = window.parent.document;
-            if (doc.documentElement.dataset.globeZoomLock === "1") {
-                return;
+            const opts = { capture: true, passive: false };
+
+            if (doc._globeZoomHandler) {
+                doc.removeEventListener("wheel", doc._globeZoomHandler.wheel, opts);
+                doc.removeEventListener("touchmove", doc._globeZoomHandler.touch, opts);
             }
-            doc.documentElement.dataset.globeZoomLock = "1";
 
             function onGlobe(target) {
                 return target && target.closest &&
                     target.closest('[data-testid="stPlotlyChart"]');
             }
 
-            doc.addEventListener("wheel", function(event) {
+            function onWheel(event) {
                 if (onGlobe(event.target)) {
                     event.preventDefault();
                 }
-            }, { capture: true, passive: false });
+            }
 
-            doc.addEventListener("touchmove", function(event) {
-                if (onGlobe(event.target)) {
+            function onTouchMove(event) {
+                if (onGlobe(event.target) && event.touches.length >= 2) {
                     event.preventDefault();
                 }
-            }, { capture: true, passive: false });
+            }
+
+            doc._globeZoomHandler = { wheel: onWheel, touch: onTouchMove };
+            doc.addEventListener("wheel", onWheel, opts);
+            doc.addEventListener("touchmove", onTouchMove, opts);
         })();
         </script>
         """,
@@ -2089,7 +2086,8 @@ else:
     st.caption(
         f"NOAA short-term aurora forecast centered on "
         f"{coordinates['name']}. Brighter areas indicate stronger "
-        f"expected auroral activity. The white marker shows your destination."
+        f"expected auroral activity. The white marker shows your destination. "
+        f"On a phone, swipe to scroll and pinch to zoom."
     )
 
 
