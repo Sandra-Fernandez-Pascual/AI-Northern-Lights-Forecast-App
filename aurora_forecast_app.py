@@ -873,8 +873,15 @@ section[data-testid="stSidebar"] {
 [data-testid="stPlotlyChart"],
 [data-testid="stPlotlyChart"] > div,
 .js-plotly-plot,
-.plot-container {
+.plot-container,
+.svg-container {
     background: transparent !important;
+    touch-action: none;
+    overscroll-behavior: contain;
+}
+
+[data-testid="stPlotlyChart"] {
+    overflow: hidden;
 }
 
 /* ---------- Night sky: stars, shooting stars, aurora ---------- */
@@ -1393,6 +1400,19 @@ hr {
 
     [data-testid="stPlotlyChart"] {
         width: 100% !important;
+        max-width: 100%;
+        overflow: hidden;
+        touch-action: none;
+        overscroll-behavior: contain;
+    }
+
+    [data-testid="stPlotlyChart"] .js-plotly-plot,
+    [data-testid="stPlotlyChart"] .plot-container,
+    [data-testid="stPlotlyChart"] .svg-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        touch-action: none;
+        overscroll-behavior: contain;
     }
 
     [data-testid="stHorizontalBlock"] {
@@ -1449,6 +1469,8 @@ hr {
     .js-plotly-plot,
     .plot-container {
         background: transparent !important;
+        touch-action: none;
+        overscroll-behavior: contain;
     }
 
 }
@@ -1983,12 +2005,19 @@ else:
         )
     )
 
+    view_lat = float(latitude)
+    view_lon = float(longitude)
+
     fig.update_geos(
         projection_type="orthographic",
         projection_rotation=dict(
-            lon=-longitude,
-            lat=-latitude
+            lon=view_lon,
+            lat=view_lat,
+            roll=0
         ),
+        center=dict(lon=view_lon, lat=view_lat),
+        projection_scale=1.05,
+        fitbounds=False,
         showland=True,
         landcolor="#1a433b",
         showocean=True,
@@ -1999,7 +2028,8 @@ else:
         countrycolor="#5d8f84",
         coastlinecolor="#79d8c1",
         bgcolor="rgba(0,0,0,0)",
-        showframe=False
+        showframe=False,
+        domain=dict(x=[0, 1], y=[0, 1])
     )
 
     fig.update_layout(
@@ -2007,13 +2037,53 @@ else:
         margin=dict(l=0, r=0, t=10, b=0),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#dfeae7")
+        font=dict(color="#dfeae7"),
+        uirevision=f"{view_lat:.4f},{view_lon:.4f}",
+        autosize=True
     )
 
     st.plotly_chart(
         fig,
         use_container_width=True,
-        config={"displayModeBar": False}
+        key=f"aurora-globe-{view_lat:.4f}-{view_lon:.4f}",
+        config={
+            "displayModeBar": False,
+            "responsive": True,
+            "scrollZoom": True,
+            "doubleClick": "reset"
+        }
+    )
+
+    components.html(
+        """
+        <script>
+        (function() {
+            const doc = window.parent.document;
+            if (doc.documentElement.dataset.globeZoomLock === "1") {
+                return;
+            }
+            doc.documentElement.dataset.globeZoomLock = "1";
+
+            function onGlobe(target) {
+                return target && target.closest &&
+                    target.closest('[data-testid="stPlotlyChart"]');
+            }
+
+            doc.addEventListener("wheel", function(event) {
+                if (onGlobe(event.target)) {
+                    event.preventDefault();
+                }
+            }, { capture: true, passive: false });
+
+            doc.addEventListener("touchmove", function(event) {
+                if (onGlobe(event.target)) {
+                    event.preventDefault();
+                }
+            }, { capture: true, passive: false });
+        })();
+        </script>
+        """,
+        height=0
     )
 
     st.caption(
