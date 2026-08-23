@@ -8,6 +8,7 @@ import streamlit.components.v1 as components
 import joblib
 import time
 import os
+import math
 
 from datetime import datetime, timezone, date, timedelta
 
@@ -421,18 +422,27 @@ def get_sun_data(latitude, longitude, forecast_date):
     if not isinstance(inner, dict):
         return None
 
-    begin = inner.get("astronomical_twilight_begin")
-    end = inner.get("astronomical_twilight_end")
+    begin = _parse_sun_timestamp(inner.get("astronomical_twilight_begin"))
+    end = _parse_sun_timestamp(inner.get("astronomical_twilight_end"))
+    sunrise = _parse_sun_timestamp(inner.get("sunrise"))
+    sunset = _parse_sun_timestamp(inner.get("sunset"))
 
-    if begin in ("None", ""):
-        begin = None
-    if end in ("None", ""):
-        end = None
+    try:
+        day_length = float(inner.get("day_length"))
+    except (TypeError, ValueError):
+        day_length = None
 
     sun_status = inner.get("sun_status")
     if sun_status not in ("midnight_sun", "polar_night", "normal"):
-        if begin is None and end is None:
+        if day_length is not None and day_length >= 86400:
             sun_status = "midnight_sun"
+        elif day_length is not None and day_length <= 0:
+            sun_status = "polar_night"
+        elif sunrise is None and sunset is None:
+            # Same sentinel is used for polar day and polar night.
+            # Decide from solar geometry instead of assuming midnight sun.
+            dark_hours = _astronomical_dark_hours(latitude, forecast_date)
+            sun_status = "polar_night" if dark_hours >= 12 else "midnight_sun"
         else:
             sun_status = "normal"
 
@@ -440,6 +450,9 @@ def get_sun_data(latitude, longitude, forecast_date):
         "sun_status": sun_status,
         "astronomical_twilight_begin": begin,
         "astronomical_twilight_end": end,
+        "day_length": day_length,
+        "latitude": latitude,
+        "forecast_date": forecast_date,
     }
 
 # -----------------------------
@@ -503,40 +516,125 @@ def get_magnetic_field():
 # Sky Darkness
 # -----------------------------------------------------
 
-def classify_darkness(sun_data):
+def _parse_sun_timestamp(value):
+    if value in (None, "", "None"):
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    if parsed.year <= 1970:
+        return None
+    return parsed
 
-    # Polar day: no real darkness
+
+def _solar_declination_deg(day_of_year):
+    return 23.45 * math.sin(
+        math.radians((360.0 / 365.0) * (284 + day_of_year))
+    )
+
+
+def _astronomical_dark_hours(latitude, forecast_date):
+    """Hours when the Sun is at least 18° below the horizon."""
+    day_of_year = forecast_date.timetuple().tm_yday
+    decl = math.radians(_solar_declination_deg(day_of_year))
+    lat = math.radians(float(latitude))
+    sin_target = math.sin(math.radians(-18))
+    denom = math.cos(lat) * math.cos(decl)
+
+    if abs(denom) < 1e-12:
+        noon_sin = (
+            math.sin(lat) * math.sin(decl) +
+            math.cos(lat) * math.cos(decl)
+        )
+        midnight_sin = (
+            math.sin(lat) * math.sin(decl) -
+            math.cos(lat) * math.cos(decl)
+        )
+        if noon_sin <= sin_target:
+            return 24.0
+        if midnight_sin > sin_target:
+            return 0.0
+        return 0.0
+
+    cos_hour_angle = (
+        (sin_target - math.sin(lat) * math.sin(decl)) / denom
+    )
+
+    # cos H > 1: even at noon the Sun stays below -18° → polar night
+    if cos_hour_angle >= 1:
+        return 24.0
+    # cos H < -1: even at midnight the Sun stays above -18° → white nights / midnight sun
+    if cos_hour_angle <= -1:
+        return 0.0
+
+    hour_angle = math.degrees(math.acos(cos_hour_angle))
+    return (360.0 - 2.0 * hour_angle) / 15.0
+
+
+def _sun_elevation_local_deg(latitude, local_time):
+    """Approximate solar elevation using local clock time."""
+    day_of_year = local_time.timetuple().tm_yday
+    decl = math.radians(_solar_declination_deg(day_of_year))
+    lat = math.radians(float(latitude))
+    hour = local_time.hour + local_time.minute / 60.0
+    hour_angle = math.radians(15.0 * (hour - 12.0))
+    sine_elevation = (
+        math.sin(lat) * math.sin(decl) +
+        math.cos(lat) * math.cos(decl) * math.cos(hour_angle)
+    )
+    sine_elevation = max(-1.0, min(1.0, sine_elevation))
+    return math.degrees(math.asin(sine_elevation))
+
+
+def _nearby_aurora_points(aurora_df, latitude, longitude, max_degrees=40):
+    """Keep oval points around the destination so the globe cannot fit the whole Earth."""
+    if aurora_df is None or aurora_df.empty:
+        return aurora_df
+
+    lat1 = np.radians(latitude)
+    lon1 = np.radians(longitude)
+    lat2 = np.radians(aurora_df["latitude"].to_numpy())
+    lon2 = np.radians(aurora_df["longitude"].to_numpy())
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    haversine = (
+        np.sin(dlat / 2) ** 2 +
+        np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
+    )
+    distance_deg = 2 * np.degrees(
+        np.arcsin(np.sqrt(np.clip(haversine, 0, 1)))
+    )
+    local = aurora_df.loc[distance_deg <= max_degrees]
+    if len(local) < 20:
+        return aurora_df
+    return local
+
+
+SKY_TOO_BRIGHT = "No viewing window — sky stays too bright"
+
+
+def classify_darkness(sun_data, latitude=None, forecast_date=None):
+
+    if latitude is None:
+        latitude = sun_data.get("latitude")
+    if forecast_date is None:
+        forecast_date = sun_data.get("forecast_date")
+
+    if latitude is not None and forecast_date is not None:
+        dark_hours = _astronomical_dark_hours(latitude, forecast_date)
+        if dark_hours >= 8:
+            return "Excellent"
+        if dark_hours >= 5:
+            return "Good"
+        if dark_hours >= 2:
+            return "Fair"
+        return "Poor"
+
     if sun_data.get("sun_status") == "midnight_sun":
         return "Poor"
-
-    # Polar night: darkness all day
     if sun_data.get("sun_status") == "polar_night":
         return "Excellent"
-
-    astronomical_begin = sun_data.get("astronomical_twilight_begin")
-    astronomical_end = sun_data.get("astronomical_twilight_end")
-
-    # If astronomical twilight does not occur,
-    # treat the day conservatively
-    if astronomical_begin is None or astronomical_end is None:
-        return "Poor"
-
-    try:
-        astronomical_begin = datetime.fromisoformat(astronomical_begin)
-        astronomical_end = datetime.fromisoformat(astronomical_end)
-    except (TypeError, ValueError):
-        return "Poor"
-
-    dark_hours = 24 - (
-        astronomical_end - astronomical_begin
-    ).total_seconds() / 3600
-
-    if dark_hours >= 8:
-        return "Excellent"
-    elif dark_hours >= 5:
-        return "Good"
-    elif dark_hours >= 2:
-        return "Fair"
 
     return "Poor"
 
@@ -545,7 +643,7 @@ def classify_darkness(sun_data):
 # Best Viewing Time
 # -----------------------------------------------------
 
-def get_best_viewing_time(environment):
+def get_best_viewing_time(environment, latitude):
 
     night_df = environment["night_weather"].copy()
 
@@ -556,26 +654,37 @@ def get_best_viewing_time(environment):
     if night_df.empty:
         return "Weather estimate unavailable"
 
-    night_df["cloud_score"] = 1 - (
-        night_df["cloud_cover"] / 100
+    night_df["sun_elevation"] = night_df["time"].apply(
+        lambda moment: _sun_elevation_local_deg(latitude, moment.to_pydatetime())
     )
 
-    max_visibility = night_df["visibility"].max()
+    # Nautical darkness: Sun at least 12° below the horizon.
+    # Brighter than this, aurora is washed out.
+    dark_df = night_df[night_df["sun_elevation"] <= -12].copy()
+
+    if dark_df.empty:
+        return SKY_TOO_BRIGHT
+
+    dark_df["cloud_score"] = 1 - (
+        dark_df["cloud_cover"] / 100
+    )
+
+    max_visibility = dark_df["visibility"].max()
 
     if max_visibility == 0:
-        night_df["visibility_score"] = 0
+        dark_df["visibility_score"] = 0
     else:
-        night_df["visibility_score"] = (
-            night_df["visibility"] / max_visibility
+        dark_df["visibility_score"] = (
+            dark_df["visibility"] / max_visibility
         )
 
-    night_df["viewing_score"] = (
-        0.7 * night_df["cloud_score"] +
-        0.3 * night_df["visibility_score"]
+    dark_df["viewing_score"] = (
+        0.7 * dark_df["cloud_score"] +
+        0.3 * dark_df["visibility_score"]
     )
 
-    best_hour = night_df.loc[
-        night_df["viewing_score"].idxmax(),
+    best_hour = dark_df.loc[
+        dark_df["viewing_score"].idxmax(),
         "time"
     ]
 
@@ -698,9 +807,10 @@ def estimate_aurora_probability(
     environment,
     sun_data,
     latitude,
+    forecast_date,
 ):
 
-    darkness = classify_darkness(sun_data)
+    darkness = classify_darkness(sun_data, latitude, forecast_date)
 
     # -----------------------------
     # 1. Geomagnetic potential
@@ -798,7 +908,7 @@ def estimate_aurora_probability(
     return {
         "probability": probability,
         "darkness": darkness,
-        "best_time": get_best_viewing_time(environment),
+        "best_time": get_best_viewing_time(environment, latitude),
         "geomagnetic_activity": classify_geomagnetic_activity(
             forecast["ap_today"]
         ),
@@ -877,6 +987,12 @@ section[data-testid="stSidebar"] {
 .svg-container {
     background: transparent !important;
     touch-action: pan-y;
+}
+
+[data-testid="stPlotlyChart"] .draglayer,
+[data-testid="stPlotlyChart"] .nsewdrag,
+[data-testid="stPlotlyChart"] .zoombox {
+    pointer-events: none !important;
 }
 
 /* ---------- Night sky: stars, shooting stars, aurora ---------- */
@@ -1407,6 +1523,12 @@ hr {
         touch-action: pan-y;
     }
 
+    [data-testid="stPlotlyChart"] .draglayer,
+    [data-testid="stPlotlyChart"] .nsewdrag,
+    [data-testid="stPlotlyChart"] .zoombox {
+        pointer-events: none !important;
+    }
+
     [data-testid="stHorizontalBlock"] {
         flex-wrap: wrap;
         gap: 0.5rem;
@@ -1462,6 +1584,12 @@ hr {
     .plot-container {
         background: transparent !important;
         touch-action: pan-y;
+    }
+
+    [data-testid="stPlotlyChart"] .draglayer,
+    [data-testid="stPlotlyChart"] .nsewdrag,
+    [data-testid="stPlotlyChart"] .zoombox {
+        pointer-events: none !important;
     }
 
 }
@@ -1730,7 +1858,8 @@ if forecast is not None and environment is not None and sun_data is not None:
             forecast,
             environment,
             sun_data,
-            latitude
+            latitude,
+            forecast_date
         )
     except (TypeError, ValueError, KeyError):
         result = None
@@ -1791,7 +1920,14 @@ if result is not None:
         "location, sky darkness, cloud cover and visibility."
     )
 
-    if result["best_time"] != "Weather estimate unavailable":
+    if result["best_time"] == SKY_TOO_BRIGHT:
+        st.warning(
+            "No useful viewing time on this date because of the current season: "
+            "at this latitude the sky does not get dark enough "
+            "(midnight sun or white nights). "
+            "Aurora would be washed out even with clear skies."
+        )
+    elif result["best_time"] != "Weather estimate unavailable":
         st.metric(
             label="Best Viewing Time",
             value=result["best_time"]
@@ -1809,7 +1945,7 @@ if result is not None:
             <div class="condition-title">🌑 SKY DARKNESS</div>
             <div class="condition-value">{result['darkness']}</div>
             <div class="condition-text">
-                Estimated natural sky darkness based on sunrise, sunset and twilight times.
+                Estimated natural sky darkness for this date and latitude, including polar day and white nights.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1937,16 +2073,18 @@ if aurora_df is None:
     st.warning("Auroral oval data temporarily unavailable.")
 
 else:
+    local_aurora = _nearby_aurora_points(aurora_df, latitude, longitude)
+
     fig = go.Figure()
 
     fig.add_trace(
         go.Scattergeo(
-            lon=aurora_df["longitude"],
-            lat=aurora_df["latitude"],
+            lon=local_aurora["longitude"],
+            lat=local_aurora["latitude"],
             mode="markers",
             marker=dict(
                 size=4,
-                color=aurora_df["intensity"],
+                color=local_aurora["intensity"],
                 colorscale=[
                     [0.0, "#123c35"],
                     [0.4, "#3f8f7e"],
@@ -1954,8 +2092,8 @@ else:
                     [1.0, "#d7fff4"]
                 ],
                 cmin=5,
-                cmax=float(max(aurora_df["intensity"].max(), 10))
-                if not aurora_df.empty
+                cmax=float(max(local_aurora["intensity"].max(), 10))
+                if not local_aurora.empty
                 else 10,
                 opacity=0.75,
                 colorbar=dict(
@@ -2006,8 +2144,7 @@ else:
             lat=view_lat,
             roll=0
         ),
-        center=dict(lon=view_lon, lat=view_lat),
-        projection_scale=1.05,
+        projection_scale=2.4,
         fitbounds=False,
         showland=True,
         landcolor="#1a433b",
@@ -2019,8 +2156,7 @@ else:
         countrycolor="#5d8f84",
         coastlinecolor="#79d8c1",
         bgcolor="rgba(0,0,0,0)",
-        showframe=False,
-        domain=dict(x=[0, 1], y=[0, 1])
+        showframe=False
     )
 
     fig.update_layout(
@@ -2030,7 +2166,9 @@ else:
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="#dfeae7"),
         uirevision=f"{view_lat:.4f},{view_lon:.4f}",
-        autosize=True
+        autosize=True,
+        dragmode=False,
+        hovermode=False
     )
 
     st.plotly_chart(
@@ -2040,8 +2178,10 @@ else:
         config={
             "displayModeBar": False,
             "responsive": True,
-            "scrollZoom": True,
-            "doubleClick": "reset"
+            "staticPlot": True,
+            "scrollZoom": False,
+            "doubleClick": False,
+            "displaylogo": False
         }
     )
 
@@ -2051,32 +2191,11 @@ else:
         (function() {
             const doc = window.parent.document;
             const opts = { capture: true, passive: false };
-
             if (doc._globeZoomHandler) {
                 doc.removeEventListener("wheel", doc._globeZoomHandler.wheel, opts);
                 doc.removeEventListener("touchmove", doc._globeZoomHandler.touch, opts);
+                doc._globeZoomHandler = null;
             }
-
-            function onGlobe(target) {
-                return target && target.closest &&
-                    target.closest('[data-testid="stPlotlyChart"]');
-            }
-
-            function onWheel(event) {
-                if (onGlobe(event.target)) {
-                    event.preventDefault();
-                }
-            }
-
-            function onTouchMove(event) {
-                if (onGlobe(event.target) && event.touches.length >= 2) {
-                    event.preventDefault();
-                }
-            }
-
-            doc._globeZoomHandler = { wheel: onWheel, touch: onTouchMove };
-            doc.addEventListener("wheel", onWheel, opts);
-            doc.addEventListener("touchmove", onTouchMove, opts);
         })();
         </script>
         """,
@@ -2087,7 +2206,7 @@ else:
         f"NOAA short-term aurora forecast centered on "
         f"{coordinates['name']}. Brighter areas indicate stronger "
         f"expected auroral activity. The white marker shows your destination. "
-        f"On a phone, swipe to scroll and pinch to zoom."
+        f"The globe is locked on this location so it does not spin when you scroll."
     )
 
 
