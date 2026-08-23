@@ -12,7 +12,7 @@
 
 # 📱 App Demo
 
-<video src="assets/app-demo.mp4" width="280" autoplay muted loop playsinline controls></video>
+<img src="assets/app-demo.gif" width="280" alt="App Demo">
 
 ---
 
