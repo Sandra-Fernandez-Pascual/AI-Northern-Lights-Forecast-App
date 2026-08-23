@@ -611,6 +611,17 @@ def _nearby_aurora_points(aurora_df, latitude, longitude, max_degrees=40):
     return local
 
 
+def _aurora_fill_colors(intensities):
+    values = np.asarray(intensities, dtype=float)
+    vmax = max(float(np.nanmax(values)) if values.size else 10, 10)
+    t = np.clip((values - 5) / (vmax - 5), 0, 1)
+    red = np.round(18 + t * (215 - 18)).astype(int)
+    green = np.round(60 + t * (255 - 60)).astype(int)
+    blue = np.round(53 + t * (244 - 53)).astype(int)
+    alpha = np.round(150 + t * 90).astype(int)
+    return np.column_stack([red, green, blue, alpha])
+
+
 SKY_TOO_BRIGHT = "No viewing window — sky stays too bright"
 
 
@@ -639,6 +650,54 @@ def classify_darkness(sun_data, latitude=None, forecast_date=None):
     return "Poor"
 
 
+def describe_darkness(latitude, forecast_date):
+    if latitude is None or forecast_date is None:
+        return "Estimated natural sky darkness for this date and latitude."
+
+    dark_hours = _astronomical_dark_hours(latitude, forecast_date)
+    abs_lat = abs(float(latitude))
+
+    if dark_hours < 0.5:
+        if abs_lat >= 60:
+            return (
+                "No true night at this latitude in the current season "
+                "(midnight sun or white nights). The sky stays too bright for aurora."
+            )
+        return (
+            "Nights are too short and bright at this latitude in the current season "
+            "for a useful aurora window."
+        )
+
+    if dark_hours >= 20 and abs_lat >= 60:
+        return (
+            "The sky stays dark almost around the clock at this latitude "
+            "in the current season (polar night)."
+        )
+
+    if dark_hours >= 8:
+        return (
+            f"About {dark_hours:.0f} hours of true darkness at this latitude "
+            "in the current season — enough for aurora if other conditions are good."
+        )
+
+    if dark_hours >= 5:
+        return (
+            f"Several hours of true darkness ({dark_hours:.0f} h) at this latitude "
+            "in the current season."
+        )
+
+    if dark_hours >= 2:
+        return (
+            f"Only a short window of true darkness ({dark_hours:.0f} h) "
+            "at this latitude in the current season."
+        )
+
+    return (
+        "Very little true darkness at this latitude in the current season, "
+        "so aurora would be hard to see."
+    )
+
+
 # -----------------------------------------------------
 # Best Viewing Time
 # -----------------------------------------------------
@@ -646,10 +705,6 @@ def classify_darkness(sun_data, latitude=None, forecast_date=None):
 def get_best_viewing_time(environment, latitude):
 
     night_df = environment["night_weather"].copy()
-
-    night_df = night_df.dropna(
-        subset=["cloud_cover", "visibility"]
-    )
 
     if night_df.empty:
         return "Weather estimate unavailable"
@@ -659,40 +714,70 @@ def get_best_viewing_time(environment, latitude):
     )
 
     # Nautical darkness: Sun at least 12° below the horizon.
-    # Brighter than this, aurora is washed out.
     dark_df = night_df[night_df["sun_elevation"] <= -12].copy()
 
     if dark_df.empty:
         return SKY_TOO_BRIGHT
 
-    dark_df["cloud_score"] = 1 - (
-        dark_df["cloud_cover"] / 100
+    # Clouds block the sky — this is the main local factor.
+    cloud = dark_df["cloud_cover"].clip(0, 100)
+    dark_df["cloud_score"] = np.where(
+        cloud.isna(),
+        0.5,
+        1 - cloud / 100
     )
 
-    max_visibility = dark_df["visibility"].max()
+    # Sky clarity from visibility (km). 20 km+ is treated as fully clear.
+    visibility_km = dark_df["visibility"] / 1000
+    dark_df["clarity_score"] = np.where(
+        visibility_km.isna(),
+        0.5,
+        np.clip(visibility_km / 20, 0, 1)
+    )
 
-    if max_visibility == 0:
-        dark_df["visibility_score"] = 0
-    else:
-        dark_df["visibility_score"] = (
-            dark_df["visibility"] / max_visibility
-        )
+    # Prefer hours that are darker than the nautical threshold.
+    extra_dark = (-dark_df["sun_elevation"] - 12) / 12
+    dark_df["darkness_score"] = extra_dark.clip(0, 1)
 
     dark_df["viewing_score"] = (
-        0.7 * dark_df["cloud_score"] +
-        0.3 * dark_df["visibility_score"]
+        0.60 * dark_df["cloud_score"] +
+        0.25 * dark_df["clarity_score"] +
+        0.15 * dark_df["darkness_score"]
     )
 
-    best_hour = dark_df.loc[
-        dark_df["viewing_score"].idxmax(),
-        "time"
-    ]
+    dark_df = dark_df.sort_values("time").reset_index(drop=True)
+    window_hours = 4
 
-    best_end = best_hour + timedelta(hours=1)
+    if len(dark_df) <= window_hours:
+        start_hour = dark_df["time"].iloc[0]
+        end_hour = dark_df["time"].iloc[-1] + timedelta(hours=1)
+    else:
+        best_index = 0
+        best_mean = -1.0
+
+        for i in range(len(dark_df) - window_hours + 1):
+            window = dark_df.iloc[i:i + window_hours]
+            span = window["time"].iloc[-1] - window["time"].iloc[0]
+            if span != timedelta(hours=window_hours - 1):
+                continue
+            mean_score = window["viewing_score"].mean()
+            if mean_score > best_mean:
+                best_mean = mean_score
+                best_index = i
+
+        if best_mean < 0:
+            start_hour = dark_df["time"].iloc[0]
+            end_hour = dark_df["time"].iloc[-1] + timedelta(hours=1)
+        else:
+            start_hour = dark_df["time"].iloc[best_index]
+            end_hour = (
+                dark_df["time"].iloc[best_index + window_hours - 1]
+                + timedelta(hours=1)
+            )
 
     return (
-        f"{best_hour.strftime('%H:%M')} - "
-        f"{best_end.strftime('%H:%M')}"
+        f"{start_hour.strftime('%H:%M')} - "
+        f"{end_hour.strftime('%H:%M')}"
     )
 
 # -----------------------------------------------------
@@ -731,18 +816,7 @@ def classify_solar_activity(f107):
 def classify_visibility(visibility, cloud_cover=None):
 
     if pd.isna(visibility):
-
-        if pd.isna(cloud_cover):
-            return "Unavailable"
-
-        if cloud_cover <= 20:
-            return "Excellent"
-        elif cloud_cover <= 50:
-            return "Good"
-        elif cloud_cover <= 80:
-            return "Fair"
-        else:
-            return "Poor"
+        return "Unavailable"
 
     km = visibility / 1000
 
@@ -868,7 +942,7 @@ def estimate_aurora_probability(
         )
 
     if pd.isna(environment["visibility"]):
-        visibility_factor = 1.0
+        visibility_factor = 0.5
 
     else:
         visibility_km = environment["visibility"] / 1000
@@ -908,6 +982,7 @@ def estimate_aurora_probability(
     return {
         "probability": probability,
         "darkness": darkness,
+        "darkness_caption": describe_darkness(latitude, forecast_date),
         "best_time": get_best_viewing_time(environment, latitude),
         "geomagnetic_activity": classify_geomagnetic_activity(
             forecast["ap_today"]
@@ -1945,7 +2020,7 @@ if result is not None:
             <div class="condition-title">🌑 SKY DARKNESS</div>
             <div class="condition-value">{result['darkness']}</div>
             <div class="condition-text">
-                Estimated natural sky darkness for this date and latitude, including polar day and white nights.
+                {result['darkness_caption']}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1976,7 +2051,7 @@ if result is not None:
     clarity_text = (
         f"Meteorological visibility: {environment['visibility']/1000:.1f} km."
         if not pd.isna(environment["visibility"])
-        else "Estimated from typical cloud cover conditions."
+        else "Visibility in km is unavailable for this date."
     )
 
     with col3:
@@ -2073,140 +2148,112 @@ if aurora_df is None:
     st.warning("Auroral oval data temporarily unavailable.")
 
 else:
-    local_aurora = _nearby_aurora_points(aurora_df, latitude, longitude)
+    local_aurora = _nearby_aurora_points(
+        aurora_df, latitude, longitude, max_degrees=50
+    )
 
-    fig = go.Figure()
+    layers = []
 
-    fig.add_trace(
-        go.Scattergeo(
-            lon=local_aurora["longitude"],
-            lat=local_aurora["latitude"],
-            mode="markers",
-            marker=dict(
-                size=4,
-                color=local_aurora["intensity"],
-                colorscale=[
-                    [0.0, "#123c35"],
-                    [0.4, "#3f8f7e"],
-                    [0.7, "#79d8c1"],
-                    [1.0, "#d7fff4"]
-                ],
-                cmin=5,
-                cmax=float(max(local_aurora["intensity"].max(), 10))
-                if not local_aurora.empty
-                else 10,
-                opacity=0.75,
-                colorbar=dict(
-                    title=dict(
-                        text="Aurora<br>Intensity",
-                        font=dict(color="#dfeae7")
-                    ),
-                    thickness=12,
-                    bgcolor="rgba(0,0,0,0)",
-                    tickfont=dict(color="#dfeae7")
-                )
-            ),
-            hovertemplate="Aurora intensity: %{marker.color}<extra></extra>",
-            showlegend=False
+    if local_aurora is not None and not local_aurora.empty:
+        oval = local_aurora.copy()
+        colors = _aurora_fill_colors(oval["intensity"])
+        oval["red"] = colors[:, 0]
+        oval["green"] = colors[:, 1]
+        oval["blue"] = colors[:, 2]
+        oval["alpha"] = colors[:, 3]
+        oval["hover"] = "Aurora intensity: " + oval["intensity"].round().astype(int).astype(str)
+
+        layers.append(
+            pdk.Layer(
+                "ScatterplotLayer",
+                data=oval,
+                get_position="[longitude, latitude]",
+                get_fill_color="[red, green, blue, alpha]",
+                get_radius=22000,
+                radius_min_pixels=2,
+                radius_max_pixels=10,
+                pickable=True,
+                stroked=False
+            )
+        )
+
+    destination = pd.DataFrame([{
+        "longitude": float(longitude),
+        "latitude": float(latitude),
+        "name": coordinates["name"],
+        "hover": coordinates["name"],
+    }])
+
+    layers.append(
+        pdk.Layer(
+            "ScatterplotLayer",
+            data=destination,
+            get_position="[longitude, latitude]",
+            get_fill_color=[255, 255, 255, 255],
+            get_line_color=[121, 216, 193, 255],
+            get_radius=35000,
+            radius_min_pixels=8,
+            radius_max_pixels=14,
+            stroked=True,
+            get_line_width=2,
+            line_width_min_pixels=2,
+            pickable=True
         )
     )
 
-    fig.add_trace(
-        go.Scattergeo(
-            lon=[longitude],
-            lat=[latitude],
-            mode="markers+text",
-            marker=dict(
-                size=11,
-                color="white",
-                line=dict(
-                    color="#79d8c1",
-                    width=3
-                )
-            ),
-            text=[coordinates["name"]],
-            textposition="top center",
-            hovertemplate=(
-                f"<b>{coordinates['name']}, "
-                f"{coordinates['country']}</b><extra></extra>"
-            ),
-            showlegend=False
+    layers.append(
+        pdk.Layer(
+            "TextLayer",
+            data=destination,
+            get_position="[longitude, latitude]",
+            get_text="name",
+            get_color=[223, 234, 231],
+            get_size=14,
+            get_alignment_baseline="bottom",
+            get_pixel_offset=[0, -14]
         )
     )
 
-    view_lat = float(latitude)
-    view_lon = float(longitude)
-
-    fig.update_geos(
-        projection_type="orthographic",
-        projection_rotation=dict(
-            lon=view_lon,
-            lat=view_lat,
-            roll=0
-        ),
-        projection_scale=2.4,
-        fitbounds=False,
-        showland=True,
-        landcolor="#1a433b",
-        showocean=True,
-        oceancolor="#102e28",
-        showlakes=True,
-        lakecolor="#102e28",
-        showcountries=True,
-        countrycolor="#5d8f84",
-        coastlinecolor="#79d8c1",
-        bgcolor="rgba(0,0,0,0)",
-        showframe=False
+    view_state = pdk.ViewState(
+        latitude=float(latitude),
+        longitude=float(longitude),
+        zoom=3.4 if abs(float(latitude)) >= 55 else 4.0,
+        pitch=0,
+        bearing=0
     )
 
-    fig.update_layout(
-        height=600,
-        margin=dict(l=0, r=0, t=10, b=0),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#dfeae7"),
-        uirevision=f"{view_lat:.4f},{view_lon:.4f}",
-        autosize=True,
-        dragmode=False,
-        hovermode=False
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        key=f"aurora-globe-{view_lat:.4f}-{view_lon:.4f}",
-        config={
-            "displayModeBar": False,
-            "responsive": True,
-            "staticPlot": True,
-            "scrollZoom": False,
-            "doubleClick": False,
-            "displaylogo": False
+    deck = pdk.Deck(
+        layers=layers,
+        initial_view_state=view_state,
+        map_style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+        views=[
+            pdk.View(
+                type="MapView",
+                controller={
+                    "scrollZoom": True,
+                    "dragPan": True,
+                    "dragRotate": False,
+                    "touchRotate": False,
+                    "doubleClickZoom": True
+                }
+            )
+        ],
+        tooltip={
+            "text": "{hover}",
+            "style": {
+                "backgroundColor": "#07110f",
+                "color": "#dfeae7"
+            }
         }
     )
 
-    components.html(
-        """
-        <script>
-        (function() {
-            const doc = window.parent.document;
-            const opts = { capture: true, passive: false };
-            if (doc._globeZoomHandler) {
-                doc.removeEventListener("wheel", doc._globeZoomHandler.wheel, opts);
-                doc.removeEventListener("touchmove", doc._globeZoomHandler.touch, opts);
-                doc._globeZoomHandler = null;
-            }
-        })();
-        </script>
-        """,
-        height=0
-    )
+    st.pydeck_chart(deck, use_container_width=True)
 
     st.caption(
-        f"NOAA short-term aurora forecast centered on "
-        f"{coordinates['name']}. Brighter areas indicate stronger "
-        f"expected auroral activity. The white marker shows your destination. "
-        f"The globe is locked on this location so it does not spin when you scroll."
+        f"NOAA short-term aurora forecast around {coordinates['name']}. "
+        f"Drag to look around, pinch or scroll to zoom. "
+        f"Brighter points mean stronger expected auroral activity. "
+        f"The white marker is your destination."
     )
 
 
