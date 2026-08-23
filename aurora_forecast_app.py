@@ -1061,13 +1061,7 @@ section[data-testid="stSidebar"] {
 .plot-container,
 .svg-container {
     background: transparent !important;
-    touch-action: pan-y;
-}
-
-[data-testid="stPlotlyChart"] .draglayer,
-[data-testid="stPlotlyChart"] .nsewdrag,
-[data-testid="stPlotlyChart"] .zoombox {
-    pointer-events: none !important;
+    touch-action: none;
 }
 
 /* ---------- Night sky: stars, shooting stars, aurora ---------- */
@@ -1587,7 +1581,7 @@ hr {
     [data-testid="stPlotlyChart"] {
         width: 100% !important;
         max-width: 100%;
-        touch-action: pan-y;
+        touch-action: none;
     }
 
     [data-testid="stPlotlyChart"] .js-plotly-plot,
@@ -1595,13 +1589,7 @@ hr {
     [data-testid="stPlotlyChart"] .svg-container {
         width: 100% !important;
         max-width: 100% !important;
-        touch-action: pan-y;
-    }
-
-    [data-testid="stPlotlyChart"] .draglayer,
-    [data-testid="stPlotlyChart"] .nsewdrag,
-    [data-testid="stPlotlyChart"] .zoombox {
-        pointer-events: none !important;
+        touch-action: none;
     }
 
     [data-testid="stHorizontalBlock"] {
@@ -1658,13 +1646,7 @@ hr {
     .js-plotly-plot,
     .plot-container {
         background: transparent !important;
-        touch-action: pan-y;
-    }
-
-    [data-testid="stPlotlyChart"] .draglayer,
-    [data-testid="stPlotlyChart"] .nsewdrag,
-    [data-testid="stPlotlyChart"] .zoombox {
-        pointer-events: none !important;
+        touch-action: none;
     }
 
 }
@@ -2148,112 +2130,117 @@ if aurora_df is None:
     st.warning("Auroral oval data temporarily unavailable.")
 
 else:
-    local_aurora = _nearby_aurora_points(
-        aurora_df, latitude, longitude, max_degrees=50
-    )
+    fig = go.Figure()
 
-    layers = []
-
-    if local_aurora is not None and not local_aurora.empty:
-        oval = local_aurora.copy()
-        colors = _aurora_fill_colors(oval["intensity"])
-        oval["red"] = colors[:, 0]
-        oval["green"] = colors[:, 1]
-        oval["blue"] = colors[:, 2]
-        oval["alpha"] = colors[:, 3]
-        oval["hover"] = "Aurora intensity: " + oval["intensity"].round().astype(int).astype(str)
-
-        layers.append(
-            pdk.Layer(
-                "ScatterplotLayer",
-                data=oval,
-                get_position="[longitude, latitude]",
-                get_fill_color="[red, green, blue, alpha]",
-                get_radius=22000,
-                radius_min_pixels=2,
-                radius_max_pixels=10,
-                pickable=True,
-                stroked=False
-            )
-        )
-
-    destination = pd.DataFrame([{
-        "longitude": float(longitude),
-        "latitude": float(latitude),
-        "name": coordinates["name"],
-        "hover": coordinates["name"],
-    }])
-
-    layers.append(
-        pdk.Layer(
-            "ScatterplotLayer",
-            data=destination,
-            get_position="[longitude, latitude]",
-            get_fill_color=[255, 255, 255, 255],
-            get_line_color=[121, 216, 193, 255],
-            get_radius=35000,
-            radius_min_pixels=8,
-            radius_max_pixels=14,
-            stroked=True,
-            get_line_width=2,
-            line_width_min_pixels=2,
-            pickable=True
+    fig.add_trace(
+        go.Scattergeo(
+            lon=aurora_df["longitude"],
+            lat=aurora_df["latitude"],
+            mode="markers",
+            marker=dict(
+                size=4,
+                color=aurora_df["intensity"],
+                colorscale=[
+                    [0.0, "#123c35"],
+                    [0.4, "#3f8f7e"],
+                    [0.7, "#79d8c1"],
+                    [1.0, "#d7fff4"]
+                ],
+                cmin=5,
+                cmax=float(max(aurora_df["intensity"].max(), 10))
+                if not aurora_df.empty
+                else 10,
+                opacity=0.75,
+                colorbar=dict(
+                    title=dict(
+                        text="Aurora<br>Intensity",
+                        font=dict(color="#dfeae7")
+                    ),
+                    thickness=12,
+                    bgcolor="rgba(0,0,0,0)",
+                    tickfont=dict(color="#dfeae7")
+                )
+            ),
+            hovertemplate="Aurora intensity: %{marker.color}<extra></extra>",
+            showlegend=False
         )
     )
 
-    layers.append(
-        pdk.Layer(
-            "TextLayer",
-            data=destination,
-            get_position="[longitude, latitude]",
-            get_text="name",
-            get_color=[223, 234, 231],
-            get_size=14,
-            get_alignment_baseline="bottom",
-            get_pixel_offset=[0, -14]
+    fig.add_trace(
+        go.Scattergeo(
+            lon=[longitude],
+            lat=[latitude],
+            mode="markers+text",
+            marker=dict(
+                size=11,
+                color="white",
+                line=dict(
+                    color="#79d8c1",
+                    width=3
+                )
+            ),
+            text=[coordinates["name"]],
+            textposition="top center",
+            hovertemplate=(
+                f"<b>{coordinates['name']}, "
+                f"{coordinates['country']}</b><extra></extra>"
+            ),
+            showlegend=False
         )
     )
 
-    view_state = pdk.ViewState(
-        latitude=float(latitude),
-        longitude=float(longitude),
-        zoom=3.4 if abs(float(latitude)) >= 55 else 4.0,
-        pitch=0,
-        bearing=0
+    view_lat = float(latitude)
+    view_lon = float(longitude)
+
+    fig.update_geos(
+        projection_type="orthographic",
+        projection_rotation=dict(
+            lon=view_lon,
+            lat=view_lat,
+            roll=0
+        ),
+        projection_scale=1.8,
+        fitbounds=False,
+        showland=True,
+        landcolor="#1a433b",
+        showocean=True,
+        oceancolor="#102e28",
+        showlakes=True,
+        lakecolor="#102e28",
+        showcountries=True,
+        countrycolor="#5d8f84",
+        coastlinecolor="#79d8c1",
+        bgcolor="rgba(0,0,0,0)",
+        showframe=False
     )
 
-    deck = pdk.Deck(
-        layers=layers,
-        initial_view_state=view_state,
-        map_style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-        views=[
-            pdk.View(
-                type="MapView",
-                controller={
-                    "scrollZoom": True,
-                    "dragPan": True,
-                    "dragRotate": False,
-                    "touchRotate": False,
-                    "doubleClickZoom": True
-                }
-            )
-        ],
-        tooltip={
-            "text": "{hover}",
-            "style": {
-                "backgroundColor": "#07110f",
-                "color": "#dfeae7"
-            }
+    fig.update_layout(
+        height=600,
+        margin=dict(l=0, r=0, t=10, b=0),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#dfeae7"),
+        uirevision=f"{view_lat:.4f},{view_lon:.4f}",
+        autosize=True
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        key=f"aurora-globe-{view_lat:.4f}-{view_lon:.4f}",
+        config={
+            "displayModeBar": False,
+            "responsive": True,
+            "scrollZoom": True,
+            "doubleClick": "reset"
         }
     )
 
-    st.pydeck_chart(deck, use_container_width=True)
-
     st.caption(
-        f"NOAA short-term aurora forecast around {coordinates['name']}. "
-        f"Drag to look around, pinch or scroll to zoom. "
-        f"Brighter points mean stronger expected auroral activity. "
-        f"The white marker is your destination."
+        f"NOAA short-term aurora oval centered on {coordinates['name']}. "
+        f"Drag to turn the globe, pinch or scroll to zoom. "
+        f"Double-tap to return to your destination. "
+        f"Brighter areas mean stronger expected auroral activity."
     )
 
 
