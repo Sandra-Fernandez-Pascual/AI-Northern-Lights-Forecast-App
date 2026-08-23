@@ -10,6 +10,12 @@
 
 ---
 
+# 📱 App Demo
+
+<video src="assets/app-demo.mp4" width="280" autoplay muted loop playsinline controls></video>
+
+---
+
 # 🌠 Project Overview
 
 Aurora Forecast is an **end-to-end decision support application** that integrates Machine Learning with multiple real-time and forecast APIs.
