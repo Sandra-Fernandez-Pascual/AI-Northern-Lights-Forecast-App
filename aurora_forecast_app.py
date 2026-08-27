@@ -1,3 +1,9 @@
+"""Northern Lights forecast Streamlit app.
+
+Shows an observation chance for a destination and date.
+Each Generate click also stores one anonymous row in Neon.
+"""
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -11,6 +17,8 @@ import os
 import math
 
 from datetime import datetime, timezone, date, timedelta
+
+from database import log_search
 
 _HTTP_HEADERS = {
     "User-Agent": "NorthernLightsForecastApp/1.0"
@@ -623,6 +631,72 @@ def _aurora_fill_colors(intensities):
 
 
 SKY_TOO_BRIGHT = "No viewing window — sky stays too bright"
+
+
+def get_database_url():
+    """Read the Neon connection string from Streamlit secrets."""
+    try:
+        return st.secrets.get("NEON_DATABASE_URL")
+    except Exception:
+        return None
+
+
+def classify_forecast_error(coordinates, forecast, environment, sun_data, result):
+    """Return the first API/pipeline error type, or None if a probability was computed."""
+    if coordinates is None:
+        return "geocode_failed"
+    if result is not None:
+        return None
+    if forecast is None:
+        return "forecast_unavailable"
+    if environment is None:
+        return "environment_unavailable"
+    if sun_data is None:
+        return "sun_unavailable"
+    return "estimate_error"
+
+
+def classify_viewing_outcome(result, error_type):
+    """Label the search as api_failed, low_probability, sky_too_bright, or favourable."""
+    if result is None or error_type is not None:
+        return "api_failed"
+    if result.get("probability") is not None and result["probability"] < 20:
+        return "low_probability"
+    if result.get("best_time") == SKY_TOO_BRIGHT:
+        return "sky_too_bright"
+    return "favourable"
+
+
+def record_search(destination, forecast_date, result, environment, error_type):
+    """Store one anonymous search in Neon. Never stops the forecast."""
+    probability = None
+    cloud_cover = None
+    visibility = None
+    sky_too_bright = None
+
+    if result is not None:
+        probability = result.get("probability")
+        sky_too_bright = result.get("best_time") == SKY_TOO_BRIGHT
+
+    if environment is not None:
+        cloud_cover = environment.get("cloud_cover")
+        visibility = environment.get("visibility")
+
+    try:
+        log_search(
+            get_database_url(),
+            destination or "unknown",
+            forecast_date,
+            probability,
+            cloud_cover,
+            visibility,
+            result is not None,
+            error_type,
+            sky_too_bright,
+            classify_viewing_outcome(result, error_type)
+        )
+    except Exception:
+        pass
 
 
 def classify_darkness(sun_data, latitude=None, forecast_date=None):
@@ -1619,6 +1693,10 @@ hr {
         white-space: nowrap !important;
     }
 
+    [data-testid="stSidebarNav"] {
+        display: none !important;
+    }
+
     [data-testid="stSidebar"],
     [data-testid="stSidebarContent"],
     section[data-testid="stSidebar"] {
@@ -1649,6 +1727,41 @@ hr {
         touch-action: pan-y;
     }
 
+}
+
+[data-testid="stSidebarNav"] {
+    display: none !important;
+}
+
+[class*="st-key-search_activity_btn"] {
+    position: fixed !important;
+    right: 1.6rem;
+    bottom: 1.4rem;
+    z-index: 1000;
+    width: auto !important;
+}
+
+[class*="st-key-search_activity_btn"] button {
+    width: auto !important;
+    min-width: 10.5rem;
+    animation: none !important;
+    background-image: none !important;
+    background: #0d1c19 !important;
+    border: 1px solid #79d8c1 !important;
+    color: #79d8c1 !important;
+    box-shadow: 0 4px 18px rgba(7, 17, 15, 0.55) !important;
+}
+
+[class*="st-key-search_activity_btn"] button p {
+    color: #79d8c1 !important;
+}
+
+[class*="st-key-search_activity_btn"] button:hover {
+    background: #10241f !important;
+    border-color: #9be6d3 !important;
+    color: #9be6d3 !important;
+    transform: none;
+    box-shadow: 0 4px 18px rgba(7, 17, 15, 0.55) !important;
 }
 
 </style>
@@ -1781,6 +1894,9 @@ st.sidebar.markdown("---")
 
 generate = st.sidebar.button("🌌 Generate Aurora Forecast")
 
+if st.button("Search Activity", key="search_activity_btn"):
+    st.switch_page("pages/1_Search_activity.py")
+
 if generate:
     components.html(
         """
@@ -1807,7 +1923,13 @@ coordinates = get_coordinates(location)
 
 if coordinates is None:
     st.error("Destination not found. Please select one of the suggested destinations or enter a valid city.")
-
+    record_search(
+        location,
+        forecast_date,
+        None,
+        None,
+        "geocode_failed"
+    )
     st.stop()
 
 latitude = coordinates["latitude"]
@@ -1921,6 +2043,20 @@ if forecast is not None and environment is not None and sun_data is not None:
     except (TypeError, ValueError, KeyError):
         result = None
         st.warning("Environmental forecast data temporarily unavailable.")
+
+record_search(
+    location,
+    forecast_date,
+    result,
+    environment,
+    classify_forecast_error(
+        coordinates,
+        forecast,
+        environment,
+        sun_data,
+        result
+    )
+)
 
 # =====================================================
 # Results

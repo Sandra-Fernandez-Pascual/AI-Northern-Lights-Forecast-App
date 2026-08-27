@@ -6,3 +6,4 @@ pydeck
 plotly
 joblib
 scikit-learn
+psycopg[binary]
