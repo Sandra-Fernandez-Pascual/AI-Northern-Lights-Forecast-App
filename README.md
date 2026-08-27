@@ -805,7 +805,7 @@ The dashboard answers two questions:
 
 ---
 
-# 🗄️ Anonymous search logging (Neon)
+# 🗄️ SQL for the anonymous search log (Neon)
 
 Each click of **Generate Aurora Forecast** stores one anonymous row in Neon PostgreSQL. The forecast screen does not change. If the database is down, the forecast still works.
 
@@ -891,7 +891,7 @@ Potential future developments include:
 - ✈️ Travel recommendations
 - 🔍 Explainable AI
 - 🤖 Exploring approaches for extending the Machine Learning model from real-time estimation to future geomagnetic forecasting
-- Anonymous search logging (Neon) — done
+- SQL for the anonymous search log (Neon) — done
 - Search activity dashboard — done
 
 ---
