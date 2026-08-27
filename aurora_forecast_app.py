@@ -77,7 +77,19 @@ def get_coordinates(location):
 
     except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
         return None
-        
+
+
+def place_label(coordinates):
+    """City and country from the geocoder, so the same place is always logged the same way."""
+    if not coordinates:
+        return None
+    name = str(coordinates.get("name") or "").strip()
+    country = str(coordinates.get("country") or "").strip()
+    if name and country:
+        return f"{name}, {country}"
+    return name or country or None
+
+
 # -----------------------------
 # NOAA Aurora Oval
 # -----------------------------
@@ -673,10 +685,16 @@ def record_search(destination, forecast_date, result, environment, error_type):
     cloud_cover = None
     visibility = None
     sky_too_bright = None
+    darkness = None
+    sky_clarity = None
+    geomagnetic_activity = None
 
     if result is not None:
         probability = result.get("probability")
         sky_too_bright = result.get("best_time") == SKY_TOO_BRIGHT
+        darkness = result.get("darkness")
+        sky_clarity = result.get("sky_clarity")
+        geomagnetic_activity = result.get("geomagnetic_activity")
 
     if environment is not None:
         cloud_cover = environment.get("cloud_cover")
@@ -693,7 +711,10 @@ def record_search(destination, forecast_date, result, environment, error_type):
             result is not None,
             error_type,
             sky_too_bright,
-            classify_viewing_outcome(result, error_type)
+            classify_viewing_outcome(result, error_type),
+            darkness,
+            sky_clarity,
+            geomagnetic_activity
         )
     except Exception:
         pass
@@ -2060,7 +2081,7 @@ if forecast is not None and environment is not None and sun_data is not None:
         st.warning("Environmental forecast data temporarily unavailable.")
 
 record_search(
-    location,
+    place_label(coordinates) or location,
     forecast_date,
     result,
     environment,

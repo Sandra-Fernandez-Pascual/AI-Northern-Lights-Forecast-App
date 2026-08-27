@@ -1,5 +1,5 @@
 -- Anonymous aurora forecast search log.
--- Run this once in the Neon SQL Editor.
+-- Run this in the Neon SQL Editor (safe to run more than once).
 
 CREATE TABLE IF NOT EXISTS forecast_searches (
     id BIGSERIAL PRIMARY KEY,
@@ -12,5 +12,13 @@ CREATE TABLE IF NOT EXISTS forecast_searches (
     forecast_succeeded BOOLEAN NOT NULL,
     error_type TEXT,
     sky_too_bright BOOLEAN,
-    viewing_outcome TEXT NOT NULL
+    viewing_outcome TEXT NOT NULL,
+    darkness TEXT,
+    sky_clarity TEXT,
+    geomagnetic_activity TEXT
 );
+
+ALTER TABLE forecast_searches
+    ADD COLUMN IF NOT EXISTS darkness TEXT,
+    ADD COLUMN IF NOT EXISTS sky_clarity TEXT,
+    ADD COLUMN IF NOT EXISTS geomagnetic_activity TEXT;

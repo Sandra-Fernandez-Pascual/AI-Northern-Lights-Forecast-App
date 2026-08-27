@@ -20,13 +20,15 @@ INSERT INTO forecast_searches (
     forecast_succeeded,
     error_type,
     sky_too_bright,
-    viewing_outcome
-) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    viewing_outcome,
+    darkness,
+    sky_clarity,
+    geomagnetic_activity
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 """
 
-SELECT_SQL = """
-SELECT
-    searched_at,
+INSERT_SQL_BASIC = """
+INSERT INTO forecast_searches (
     destination,
     forecast_date,
     aurora_probability,
@@ -36,6 +38,11 @@ SELECT
     error_type,
     sky_too_bright,
     viewing_outcome
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+"""
+
+SELECT_SQL = """
+SELECT *
 FROM forecast_searches
 ORDER BY searched_at DESC
 LIMIT %s
@@ -76,32 +83,43 @@ def log_search(
     forecast_succeeded,
     error_type,
     sky_too_bright,
-    viewing_outcome
+    viewing_outcome,
+    darkness=None,
+    sky_clarity=None,
+    geomagnetic_activity=None
 ):
     """Insert one anonymous search row. Never raises to the caller."""
     connection = get_connection(database_url)
     if connection is None:
         return
 
+    row = (
+        destination or "unknown",
+        forecast_date,
+        to_sql_null(aurora_probability),
+        to_sql_null(cloud_cover),
+        to_sql_null(visibility),
+        bool(forecast_succeeded),
+        error_type,
+        sky_too_bright,
+        viewing_outcome,
+        darkness,
+        sky_clarity,
+        geomagnetic_activity
+    )
+
     try:
-        with connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    INSERT_SQL,
-                    (
-                        destination or "unknown",
-                        forecast_date,
-                        to_sql_null(aurora_probability),
-                        to_sql_null(cloud_cover),
-                        to_sql_null(visibility),
-                        bool(forecast_succeeded),
-                        error_type,
-                        sky_too_bright,
-                        viewing_outcome
-                    )
-                )
+        with connection.cursor() as cursor:
+            cursor.execute(INSERT_SQL, row)
+        connection.commit()
     except Exception:
-        pass
+        try:
+            connection.rollback()
+            with connection.cursor() as cursor:
+                cursor.execute(INSERT_SQL_BASIC, row[:9])
+            connection.commit()
+        except Exception:
+            pass
     finally:
         try:
             connection.close()
@@ -120,18 +138,7 @@ def fetch_searches(database_url, limit=500):
             with connection.cursor() as cursor:
                 cursor.execute(SELECT_SQL, (limit,))
                 rows = cursor.fetchall()
-                columns = [
-                    "searched_at",
-                    "destination",
-                    "forecast_date",
-                    "aurora_probability",
-                    "cloud_cover",
-                    "visibility",
-                    "forecast_succeeded",
-                    "error_type",
-                    "sky_too_bright",
-                    "viewing_outcome"
-                ]
+                columns = [column.name for column in cursor.description]
                 return pd.DataFrame(rows, columns=columns)
     except Exception:
         return pd.DataFrame()
