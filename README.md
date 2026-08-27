@@ -8,6 +8,7 @@
 [![Final Presentation](https://img.shields.io/badge/Final_Presentation-Canva-2f7468?style=for-the-badge)](https://www.canva.com/design/DAHSKV9_810/SHlQImzLKEY5xYw1t5Kd4A/edit?ui=eyJBIjp7fX0)
 [![Project Planning](https://img.shields.io/badge/Project_Planning-Trello-2f7468?style=for-the-badge)](https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack)
 [![Aurora Activity Tracker](https://img.shields.io/badge/Aurora_Activity_Tracker-Trello-2f7468?style=for-the-badge)](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project)
+[![Search Activity README](https://img.shields.io/badge/Search_Activity-README-2f7468?style=for-the-badge)](#activity-tracker)
 
 ---
 
@@ -748,6 +749,59 @@ The user can:
 
 ---
 
+# ✅ Minimum Viable Product
+
+The final MVP includes:
+
+- Historical dataset analysis
+- Data cleaning and integration
+- Exploratory Data Analysis
+- Feature engineering and preprocessing
+- Machine Learning regression model
+- Model evaluation and comparison
+- Hyperparameter tuning
+- Real-time API integration
+- Streamlit application
+- Today's AI Aurora Estimate
+- Personalized forecast for a selected location and date
+- Interactive NOAA auroral oval visualization
+
+---
+
+# 🏆 Success Criteria
+
+The project is considered successful if it:
+
+- Demonstrates a complete end-to-end data science workflow
+- Produces a reliable Machine Learning model
+- Successfully integrates real-time and forecast APIs
+- Provides an intuitive Streamlit application
+- Allows users to understand their estimated chance of observing the Northern Lights
+- Demonstrates how data can help identify favourable aurora observation conditions
+
+---
+
+<a id="activity-tracker"></a>
+
+# 📊 Aurora App Activity Tracker (Neon + Cursor)
+
+This extension was built with [Cursor](https://cursor.com) and tracked on [Trello](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project). It adds **anonymous search logging** and a **Search activity** dashboard in the same Streamlit app.
+
+Each **Generate Aurora Forecast** click stores one row in a Neon PostgreSQL table. The forecast still works if the database is down. Nothing personal is stored: no names, emails, IPs, or coordinates.
+
+The dashboard answers two questions:
+
+1. **What do people look up?** Destinations and search volume (the same city is grouped, and the label is the official name when the place is found).
+2. **How good were those nights?** Aurora %, viewing outcome, clouds, visibility, darkness, and live weather vs typical clouds — using the same rules as the forecast page.
+
+<img src="assets/search-activity-kpis.png" alt="Search activity KPIs: what people look up and how those nights were">
+
+<img src="assets/search-activity-better-nights.png" alt="Which places had better nights, average aurora percent by destination">
+
+<img src="assets/search-activity-probability.png" alt="How strong were the aurora chances, histogram with 20 percent cutoff">
+
+---
+
 # 🗄️ Anonymous search logging (Neon)
 
 Each click of **Generate Aurora Forecast** stores one anonymous row in Neon PostgreSQL. The forecast screen does not change. If the database is down, the forecast still works.
@@ -762,6 +816,7 @@ Each click of **Generate Aurora Forecast** stores one anonymous row in Neon Post
 - API/pipeline `error_type` when the app could not compute a %
 - `sky_too_bright` (midnight sun / white nights)
 - `viewing_outcome`: `api_failed`, `low_probability`, `sky_too_bright`, or `favourable`
+- `darkness`, `sky_clarity`, and `geomagnetic_activity` (newer rows)
 
 ## What is never stored
 
@@ -824,38 +879,6 @@ WHERE sky_too_bright = TRUE;
 
 ---
 
-# ✅ Minimum Viable Product
-
-The final MVP includes:
-
-- Historical dataset analysis
-- Data cleaning and integration
-- Exploratory Data Analysis
-- Feature engineering and preprocessing
-- Machine Learning regression model
-- Model evaluation and comparison
-- Hyperparameter tuning
-- Real-time API integration
-- Streamlit application
-- Today's AI Aurora Estimate
-- Personalized forecast for a selected location and date
-- Interactive NOAA auroral oval visualization
-
----
-
-# 🏆 Success Criteria
-
-The project is considered successful if it:
-
-- Demonstrates a complete end-to-end data science workflow
-- Produces a reliable Machine Learning model
-- Successfully integrates real-time and forecast APIs
-- Provides an intuitive Streamlit application
-- Allows users to understand their estimated chance of observing the Northern Lights
-- Demonstrates how data can help identify favourable aurora observation conditions
-
----
-
 # 🚀 Future Improvements
 
 Potential future developments include:
@@ -877,6 +900,8 @@ Potential future developments include:
 [![Trello Project Planning](https://img.shields.io/badge/Trello_Project_Planning-Trello-2f7468?style=for-the-badge)](https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack)
 
 [![Aurora Activity Tracker](https://img.shields.io/badge/Aurora_Activity_Tracker-Trello-2f7468?style=for-the-badge)](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project)
+
+[![Search Activity README](https://img.shields.io/badge/Search_Activity-README-2f7468?style=for-the-badge)](#activity-tracker)
 
 📊 **Historical Dataset**  
 https://www.kaggle.com/datasets/arashnic/soalr-wind/data
