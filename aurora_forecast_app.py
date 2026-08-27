@@ -1744,25 +1744,25 @@ hr {
 [class*="st-key-search_activity_btn"] .stButton > button {
     width: auto !important;
     min-width: 0 !important;
-    max-width: 12.5rem;
+    max-width: 20rem;
     animation: none !important;
     background-image: none !important;
     background: #0d1c19 !important;
     border: 1px solid #79d8c1 !important;
     color: #79d8c1 !important;
     box-shadow: 0 4px 18px rgba(7, 17, 15, 0.55) !important;
-    font-size: 0.72rem !important;
-    padding: 0.35rem 0.55rem !important;
+    font-size: 1rem !important;
+    padding: 0.65rem 1rem !important;
     white-space: normal !important;
-    line-height: 1.2 !important;
+    line-height: 1.25 !important;
     height: auto !important;
 }
 
 [class*="st-key-search_activity_btn"] .stButton > button p {
     color: #79d8c1 !important;
-    font-size: 0.72rem !important;
+    font-size: 1rem !important;
     white-space: normal !important;
-    line-height: 1.2 !important;
+    line-height: 1.25 !important;
 }
 
 [class*="st-key-search_activity_btn"] .stButton > button:hover {
@@ -1775,21 +1775,7 @@ hr {
 
 @media (max-width: 768px) {
     [class*="st-key-search_activity_btn"] {
-        right: 0.55rem;
-        bottom: 0.55rem;
-        max-width: 6.6rem;
-    }
-
-    [class*="st-key-search_activity_btn"] .stButton > button,
-    [class*="st-key-search_activity_btn"] .stButton > button p {
-        width: auto !important;
-        min-width: 0 !important;
-        max-width: 6.6rem;
-        font-size: 0.48rem !important;
-        padding: 0.16rem 0.32rem !important;
-        white-space: normal !important;
-        line-height: 1.15 !important;
-        height: auto !important;
+        display: none !important;
     }
 }
 
