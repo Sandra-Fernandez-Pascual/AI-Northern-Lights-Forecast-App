@@ -786,6 +786,8 @@ The project is considered successful if it:
 
 This extension was built with [Cursor](https://cursor.com) and tracked on [Trello](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project). It adds **anonymous search logging** and a **Search activity** dashboard in the same Streamlit app.
 
+On desktop, open it with the **Search Activity for Data Analytics** button in the bottom-right corner of the forecast page. It is hidden on phones. Use **← Forecast** to go back.
+
 Each **Generate Aurora Forecast** click stores one row in a Neon PostgreSQL table. The forecast still works if the database is down. Nothing personal is stored: no names, emails, IPs, or coordinates.
 
 The dashboard answers two questions:
@@ -833,7 +835,7 @@ NEON_DATABASE_URL = "postgresql://USER:PASSWORD@HOST/dbname?sslmode=require"
 
 The app reads Streamlit Secrets only. `.env.sample` is a placeholder for GitHub and is not loaded at runtime.
 
-The sidebar page **Search activity** charts the same table.
+The **Search Activity for Data Analytics** button (bottom-right on desktop) opens the dashboard for the same table.
 
 ## Example SQL
 
@@ -895,6 +897,8 @@ Potential future developments include:
 # 🔗 Project Links
 
 [![Live Application](https://img.shields.io/badge/Live_Application-Streamlit-2f7468?style=for-the-badge)](https://northern-lights-forecast.streamlit.app)
+
+[![Final Presentation](https://img.shields.io/badge/Final_Presentation-Canva-2f7468?style=for-the-badge)](https://www.canva.com/design/DAHSKV9_810/SHlQImzLKEY5xYw1t5Kd4A/edit?ui=eyJBIjp7fX0)
 
 [![Trello Project Planning](https://img.shields.io/badge/Trello_Project_Planning-Trello-2f7468?style=for-the-badge)](https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack)
 
