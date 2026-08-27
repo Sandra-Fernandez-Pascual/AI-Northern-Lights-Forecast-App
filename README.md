@@ -742,6 +742,84 @@ The user can:
 - Open-Meteo Geocoding API
 - Sunrise-Sunset API
 - GitHub
+- Neon PostgreSQL
+- psycopg
+
+---
+
+# 🗄️ Anonymous search logging (Neon)
+
+Each click of **Generate Aurora Forecast** stores one anonymous row in Neon PostgreSQL. The forecast screen does not change. If the database is down, the forecast still works.
+
+## What is stored
+
+- Search time (`searched_at`, set by Neon)
+- Destination and forecast date
+- Aurora probability, including low values
+- Cloud cover and visibility
+- Whether a probability could be computed (`forecast_succeeded`)
+- API/pipeline `error_type` when the app could not compute a %
+- `sky_too_bright` (midnight sun / white nights)
+- `viewing_outcome`: `api_failed`, `low_probability`, `sky_too_bright`, or `favourable`
+
+## What is never stored
+
+Names, emails, IP addresses, user-agent, or latitude/longitude.
+
+## How to set up
+
+1. Create a free project at [neon.tech](https://neon.tech).
+2. Run `schema.sql` in the Neon SQL Editor.
+3. Put the connection string in `.streamlit/secrets.toml` (local) and in Streamlit Cloud secrets (live app):
+
+```toml
+NEON_DATABASE_URL = "postgresql://USER:PASSWORD@HOST/dbname?sslmode=require"
+```
+
+The app reads Streamlit Secrets only. `.env.sample` is a placeholder for GitHub and is not loaded at runtime.
+
+The sidebar page **Search activity** charts the same table.
+
+## Example SQL
+
+```sql
+-- Latest searches
+SELECT * FROM forecast_searches ORDER BY searched_at DESC LIMIT 20;
+
+-- Most popular destinations
+SELECT destination, COUNT(*) AS searches
+FROM forecast_searches
+GROUP BY destination
+ORDER BY searches DESC;
+
+-- Viewing outcomes (good nights, low %, polar day, API failures)
+SELECT viewing_outcome, COUNT(*) AS searches
+FROM forecast_searches
+GROUP BY viewing_outcome
+ORDER BY searches DESC;
+
+-- Why a probability could not be computed
+SELECT error_type, COUNT(*) AS searches
+FROM forecast_searches
+WHERE error_type IS NOT NULL
+GROUP BY error_type
+ORDER BY searches DESC;
+
+-- Average probability, including low values
+SELECT destination,
+       ROUND(AVG(aurora_probability), 1) AS avg_probability,
+       MIN(aurora_probability) AS min_probability,
+       MAX(aurora_probability) AS max_probability
+FROM forecast_searches
+WHERE aurora_probability IS NOT NULL
+GROUP BY destination
+ORDER BY avg_probability DESC;
+
+-- Polar day / sky never dark enough
+SELECT COUNT(*) AS sky_too_bright_nights
+FROM forecast_searches
+WHERE sky_too_bright = TRUE;
+```
 
 ---
 
@@ -786,6 +864,8 @@ Potential future developments include:
 - ✈️ Travel recommendations
 - 🔍 Explainable AI
 - 🤖 Exploring approaches for extending the Machine Learning model from real-time estimation to future geomagnetic forecasting
+- Anonymous search logging (Neon) — done
+- Search activity dashboard — done
 
 ---
 
