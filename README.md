@@ -7,7 +7,7 @@
 [![Live App](https://img.shields.io/badge/Live_App-Streamlit-2f7468?style=for-the-badge)](https://northern-lights-forecast.streamlit.app)
 [![Final Presentation](https://img.shields.io/badge/Final_Presentation-Canva-2f7468?style=for-the-badge)](https://www.canva.com/design/DAHSKV9_810/SHlQImzLKEY5xYw1t5Kd4A/edit?ui=eyJBIjp7fX0)
 [![Project Planning](https://img.shields.io/badge/Project_Planning-Trello-2f7468?style=for-the-badge)](https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack)
-[![Data Analytics: Aurora App Activity Tracker](https://img.shields.io/badge/Data_Analytics:_Aurora_App_Activity_Tracker-README-2f7468?style=for-the-badge)](#activity-tracker)
+[![Data Analytics extension: Aurora App Activity Tracker](https://img.shields.io/badge/Data_Analytics_extension:_Aurora_App_Activity_Tracker-README-2f7468?style=for-the-badge)](#activity-tracker)
 
 ---
 
@@ -783,6 +783,8 @@ The project is considered successful if it:
 <a id="activity-tracker"></a>
 
 # 📊 Data Analytics: Aurora App Activity Tracker (Neon + Cursor)
+
+[![Data Analytics: Aurora App Activity Tracker](https://img.shields.io/badge/Data_Analytics:_Aurora_App_Activity_Tracker-Trello-2f7468?style=for-the-badge)](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project)
 
 This extension was built with [Cursor](https://cursor.com) and tracked on [Trello](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project). It adds **anonymous search logging** and a **Search activity** dashboard in the same Streamlit app.
 
