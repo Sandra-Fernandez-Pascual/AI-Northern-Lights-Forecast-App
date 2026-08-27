@@ -16,11 +16,22 @@ st.set_page_config(
     page_icon="🌌"
 )
 
-st.title("Search activity")
-st.caption(
-    "Anonymous Generate clicks stored in Neon. "
-    "No names, emails, or IP addresses."
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebarNav"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
 )
+
+if st.button("← Forecast"):
+    st.switch_page("aurora_forecast_app.py")
+
+st.title("Search activity")
+st.caption("Anonymous Generate clicks stored in Neon.")
 
 
 def get_database_url():

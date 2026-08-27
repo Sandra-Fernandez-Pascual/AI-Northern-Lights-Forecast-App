@@ -1693,6 +1693,10 @@ hr {
         white-space: nowrap !important;
     }
 
+    [data-testid="stSidebarNav"] {
+        display: none !important;
+    }
+
     [data-testid="stSidebar"],
     [data-testid="stSidebarContent"],
     section[data-testid="stSidebar"] {
@@ -1723,6 +1727,41 @@ hr {
         touch-action: pan-y;
     }
 
+}
+
+[data-testid="stSidebarNav"] {
+    display: none !important;
+}
+
+[class*="st-key-search_activity_btn"] {
+    position: fixed !important;
+    right: 1.6rem;
+    bottom: 1.4rem;
+    z-index: 1000;
+    width: auto !important;
+}
+
+[class*="st-key-search_activity_btn"] button {
+    width: auto !important;
+    min-width: 10.5rem;
+    animation: none !important;
+    background-image: none !important;
+    background: #0d1c19 !important;
+    border: 1px solid #79d8c1 !important;
+    color: #79d8c1 !important;
+    box-shadow: 0 4px 18px rgba(7, 17, 15, 0.55) !important;
+}
+
+[class*="st-key-search_activity_btn"] button p {
+    color: #79d8c1 !important;
+}
+
+[class*="st-key-search_activity_btn"] button:hover {
+    background: #10241f !important;
+    border-color: #9be6d3 !important;
+    color: #9be6d3 !important;
+    transform: none;
+    box-shadow: 0 4px 18px rgba(7, 17, 15, 0.55) !important;
 }
 
 </style>
@@ -1854,6 +1893,9 @@ with st.sidebar.container(border=True):
 st.sidebar.markdown("---")
 
 generate = st.sidebar.button("🌌 Generate Aurora Forecast")
+
+if st.button("Search Activity", key="search_activity_btn"):
+    st.switch_page("pages/1_Search_activity.py")
 
 if generate:
     components.html(
