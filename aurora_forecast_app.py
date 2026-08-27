@@ -1741,27 +1741,56 @@ hr {
     width: auto !important;
 }
 
-[class*="st-key-search_activity_btn"] button {
+[class*="st-key-search_activity_btn"] .stButton > button {
     width: auto !important;
-    min-width: 10.5rem;
+    min-width: 0 !important;
+    max-width: 12.5rem;
     animation: none !important;
     background-image: none !important;
     background: #0d1c19 !important;
     border: 1px solid #79d8c1 !important;
     color: #79d8c1 !important;
     box-shadow: 0 4px 18px rgba(7, 17, 15, 0.55) !important;
+    font-size: 0.72rem !important;
+    padding: 0.35rem 0.55rem !important;
+    white-space: normal !important;
+    line-height: 1.2 !important;
+    height: auto !important;
 }
 
-[class*="st-key-search_activity_btn"] button p {
+[class*="st-key-search_activity_btn"] .stButton > button p {
     color: #79d8c1 !important;
+    font-size: 0.72rem !important;
+    white-space: normal !important;
+    line-height: 1.2 !important;
 }
 
-[class*="st-key-search_activity_btn"] button:hover {
+[class*="st-key-search_activity_btn"] .stButton > button:hover {
     background: #10241f !important;
     border-color: #9be6d3 !important;
     color: #9be6d3 !important;
     transform: none;
     box-shadow: 0 4px 18px rgba(7, 17, 15, 0.55) !important;
+}
+
+@media (max-width: 768px) {
+    [class*="st-key-search_activity_btn"] {
+        right: 0.55rem;
+        bottom: 0.55rem;
+        max-width: 6.6rem;
+    }
+
+    [class*="st-key-search_activity_btn"] .stButton > button,
+    [class*="st-key-search_activity_btn"] .stButton > button p {
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: 6.6rem;
+        font-size: 0.48rem !important;
+        padding: 0.16rem 0.32rem !important;
+        white-space: normal !important;
+        line-height: 1.15 !important;
+        height: auto !important;
+    }
 }
 
 </style>
@@ -1894,7 +1923,7 @@ st.sidebar.markdown("---")
 
 generate = st.sidebar.button("🌌 Generate Aurora Forecast")
 
-if st.button("Search Activity", key="search_activity_btn"):
+if st.button("Search Activity for Data Analytics", key="search_activity_btn"):
     st.switch_page("pages/1_Search_activity.py")
 
 if generate:
