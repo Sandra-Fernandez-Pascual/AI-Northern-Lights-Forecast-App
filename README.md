@@ -7,6 +7,7 @@
 [![Live App](https://img.shields.io/badge/Live_App-Streamlit-2f7468?style=for-the-badge)](https://northern-lights-forecast.streamlit.app)
 [![Final Presentation](https://img.shields.io/badge/Final_Presentation-Canva-2f7468?style=for-the-badge)](https://www.canva.com/design/DAHSKV9_810/SHlQImzLKEY5xYw1t5Kd4A/edit?ui=eyJBIjp7fX0)
 [![Project Planning](https://img.shields.io/badge/Project_Planning-Trello-2f7468?style=for-the-badge)](https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack)
+[![Aurora Activity Tracker](https://img.shields.io/badge/Aurora_Activity_Tracker-Trello-2f7468?style=for-the-badge)](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project)
 
 ---
 
@@ -874,6 +875,8 @@ Potential future developments include:
 [![Live Application](https://img.shields.io/badge/Live_Application-Streamlit-2f7468?style=for-the-badge)](https://northern-lights-forecast.streamlit.app)
 
 [![Trello Project Planning](https://img.shields.io/badge/Trello_Project_Planning-Trello-2f7468?style=for-the-badge)](https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack)
+
+[![Aurora Activity Tracker](https://img.shields.io/badge/Aurora_Activity_Tracker-Trello-2f7468?style=for-the-badge)](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project)
 
 📊 **Historical Dataset**  
 https://www.kaggle.com/datasets/arashnic/soalr-wind/data
