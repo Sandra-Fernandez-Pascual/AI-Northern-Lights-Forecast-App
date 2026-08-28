@@ -787,7 +787,7 @@ The user can:
 - Open-Meteo Geocoding API
 - Sunrise-Sunset API
 - GitHub
-- Neon PostgreSQL
+- Cloud PostgreSQL database (Neon)
 - psycopg
 
 ---
@@ -827,16 +827,16 @@ The project is considered successful if it:
 ---
 
 <a id="activity-tracker"></a>
-# 📊 Data Analytics: Aurora App Activity Tracker (Neon + Cursor)
+# 📊 Data Analytics: Aurora App Activity Tracker
 
 [![Data Analytics: Aurora App Activity Tracker](https://img.shields.io/badge/Data_Analytics:_Aurora_App_Activity_Tracker-Trello-2f7468?style=for-the-badge)](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project)
 [![Data Analytics: Aurora App Activity Tracker Presentation](https://img.shields.io/badge/Data_Analytics:_Aurora_App_Activity_Tracker_Presentation-Canva-2f7468?style=for-the-badge)](https://www.canva.com/design/DAHTkB5VAh8/AWUMqF2Z2XbCH38Q9tv07A/edit?ui=eyJBIjp7fX0)
 
-This extension was built with [Cursor](https://cursor.com) and tracked on [Trello](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project). It adds **anonymous search logging** and a **Search activity** dashboard in the same Streamlit app.
+This extension was tracked on [Trello](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project). It adds **anonymous search logging** and a **Search activity** dashboard in the same Streamlit app.
 
 On desktop, open it with the **Search Activity for Data Analytics** button in the bottom-right corner of the forecast page. It is hidden on phones. Use **← Forecast** to go back.
 
-Each **Generate Aurora Forecast** click stores one row in a Neon PostgreSQL table. The forecast still works if the database is down. Nothing personal is stored: no names, emails, IPs, or coordinates.
+Each **Generate Aurora Forecast** click stores one row in a Neon Cloud PostgreSQL database. The forecast still works if the database is down. Nothing personal is stored: no names, emails, IPs, or coordinates.
 
 The dashboard answers two questions:
 
@@ -852,13 +852,13 @@ The dashboard answers two questions:
 ---
 
 <a id="sql-log"></a>
-# 🗄️ SQL for the anonymous search log (Neon)
+# 🗄️ SQL for the anonymous search log (Neon Cloud PostgreSQL database)
 
-Each click of **Generate Aurora Forecast** stores one anonymous row in Neon PostgreSQL. The forecast screen does not change. If the database is down, the forecast still works.
+Each click of **Generate Aurora Forecast** stores one anonymous row in a Neon Cloud PostgreSQL database. The forecast screen does not change. If the database is down, the forecast still works.
 
 ## What is stored
 
-- Search time (`searched_at`, set by Neon)
+- Search time (`searched_at`, set by the database)
 - Destination and forecast date
 - Aurora probability, including low values
 - Cloud cover and visibility
@@ -941,7 +941,7 @@ Potential future developments include:
 - ✈️ Travel recommendations
 - 🔍 Explainable AI
 - 🤖 Exploring approaches for extending the Machine Learning model from real-time estimation to future geomagnetic forecasting
-- SQL for the anonymous search log (Neon) — done
+- SQL for the anonymous search log (Neon Cloud PostgreSQL database) — done
 - Search activity dashboard — done
 
 ---
