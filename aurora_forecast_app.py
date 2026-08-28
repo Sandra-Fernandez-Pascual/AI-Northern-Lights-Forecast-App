@@ -1096,7 +1096,7 @@ def estimate_aurora_probability(
 # -----------------------------
 
 st.set_page_config(
-    page_title="AI-powered Northern Lights Predictor",
+    page_title="ML-powered Northern Lights Predictor",
     page_icon="🌌",
     layout="wide",
     initial_sidebar_state="auto"
@@ -1553,9 +1553,9 @@ hr {
     line-height: 1.5;
 }
 
-/* ---------- AI Aurora Estimate ---------- */
+/* ---------- ML Aurora Estimate ---------- */
 
-.ai-card {
+.ml-card {
     background:
         linear-gradient(
             135deg,
@@ -1569,7 +1569,7 @@ hr {
     margin-top: 0.5rem;
 }
 
-.ai-label {
+.ml-label {
     color: #d9f5ee;
     font-size: 0.8rem;
     font-weight: 600;
@@ -1577,21 +1577,21 @@ hr {
     margin-bottom: 0.5rem;
 }
 
-.ai-status {
+.ml-status {
     color: #ffffff;
     font-size: 1.45rem;
     font-weight: 650;
     margin-bottom: 1rem;
 }
 
-.ai-dst {
+.ml-dst {
     color: #ffffff;
     font-size: 2rem;
     font-weight: 650;
     margin-bottom: 0.4rem;
 }
 
-.ai-caption {
+.ml-caption {
     color: #dfeae7;
     font-size: 0.85rem;
     line-height: 1.5;
@@ -1665,7 +1665,7 @@ hr {
         padding: 1rem;
     }
 
-    .ai-card {
+    .ml-card {
         padding: 1.2rem;
     }
 
@@ -1862,14 +1862,14 @@ except Exception:
 # -----------------------------
 # Application Header
 # -----------------------------
-st.title("🌌 AI-powered Northern Lights Predictor")
+st.title("🌌 ML-powered Northern Lights Predictor")
 
 st.markdown("""
 <div class="aurora-header">
-    <div class="aurora-eyebrow">AURORA INTELLIGENCE</div>
+    <div class="aurora-eyebrow">MACHINE LEARNING</div>
     <h1>Chase the Northern Lights</h1>
     <p>
-        AI-powered aurora forecasts combining space weather,
+        ML-powered aurora forecasts combining space weather,
         atmospheric conditions and real-time solar data.
     </p>
 </div>
@@ -2259,13 +2259,13 @@ if result is not None:
     st.markdown("---")
 
 # -----------------------------------------------------
-# Today's AI Aurora Forecast
+# Today's ML Aurora Forecast
 # -----------------------------------------------------
 
-st.subheader("Today's AI Aurora Estimate")
+st.subheader("Today's ML Aurora Estimate")
 
 if prediction is None:
-    st.warning("Real-time AI estimate temporarily unavailable.")
+    st.warning("Real-time ML estimate temporarily unavailable.")
 
 else:
 
@@ -2285,17 +2285,17 @@ else:
         aurora_status = "🌌 Exceptional aurora expected"
 
     st.markdown(f"""
-    <div class="ai-card">
-    <div class="ai-label">REAL-TIME AI ESTIMATE</div>
+    <div class="ml-card">
+    <div class="ml-label">REAL-TIME ML ESTIMATE</div>
 
-    <div class="ai-status">{aurora_status}</div>
+    <div class="ml-status">{aurora_status}</div>
 
-    <div class="ai-dst">{prediction:.1f} nT</div>
+    <div class="ml-dst">{prediction:.1f} nT</div>
 
-    <div class="ai-caption">
+    <div class="ml-caption">
     Predicted Dst Index
     <br><br>
-    This AI estimate is based on current real-time solar wind and magnetic field measurements.
+    This ML estimate is based on current real-time solar wind and magnetic field measurements.
     <br><br>
     More negative Dst values usually indicate stronger geomagnetic storms and better aurora potential.
     </div>
