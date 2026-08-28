@@ -9,6 +9,22 @@
 [![Project Planning](https://img.shields.io/badge/Project_Planning-Trello-2f7468?style=for-the-badge)](https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack)
 [![Data Analytics extension: Aurora App Activity Tracker](https://img.shields.io/badge/Data_Analytics_extension:_Aurora_App_Activity_Tracker-README-2f7468?style=for-the-badge)](#activity-tracker)
 
+## Index
+
+**The forecast app** — [Demo](#app-demo) · [Overview](#project-overview) · [Problem](#problem-statement) · [Goal](#project-goal) · [Research question](#main-research-question) · [Users](#target-users)
+
+**Science** — [The science](#the-science-behind-the-project) · [How it connects](#the-logic-that-connects-everything-together)
+
+**Data and ML** — [Historical data](#historical-data) · [Data integration](#data-integration) · [Why Dst](#why-dst-was-selected-as-the-target) · [Regression](#regression-problem) · [EDA](#exploratory-data-analysis) · [Preprocessing](#data-preprocessing) · [Machine learning](#machine-learning)
+
+**How the app decides** — [Today's AI estimate](#todays-ai-aurora-estimate) · [Observation chance](#estimated-observation-chance) · [Why ML is not used for future dates](#why-ml-is-used-for-current-conditions-but-not-future-dates) · [Auroral oval](#interactive-auroral-oval) · [Scientific coherence](#why-this-approach-is-scientifically-coherent)
+
+**Build** — [Workflow](#project-workflow) · [APIs](#apis) · [Data sources](#data-sources) · [Streamlit](#streamlit-application) · [Technologies](#technologies) · [MVP](#minimum-viable-product) · [Success criteria](#success-criteria)
+
+**Data Analytics extension** — [Activity tracker](#activity-tracker) · [SQL Example](#sql-example)
+
+**Close** — [Future improvements](#future-improvements) · [Project links](#project-links)
+
 ---
 
 # 📱 App Demo
@@ -677,6 +693,8 @@ Final Streamlit Application
 
 ---
 
+<a id="apis"></a>
+
 # 🌐 Real-Time & Forecast APIs
 
 | API | Purpose |
@@ -806,6 +824,8 @@ The dashboard answers two questions:
 
 ---
 
+<a id="sql-log"></a>
+
 # 🗄️ SQL for the anonymous search log (Neon)
 
 Each click of **Generate Aurora Forecast** stores one anonymous row in Neon PostgreSQL. The forecast screen does not change. If the database is down, the forecast still works.
@@ -840,7 +860,9 @@ The app reads Streamlit Secrets only. `.env.sample` is a placeholder for GitHub 
 
 The **Search Activity for Data Analytics** button (bottom-right on desktop) opens the dashboard for the same table.
 
-## Example SQL
+<a id="sql-example"></a>
+
+## SQL Example
 
 ```sql
 -- Latest searches
