@@ -429,7 +429,8 @@ if "destination" in searches.columns:
 
 if "forecast_date" in searches.columns:
     forecast_day = pd.to_datetime(searches["forecast_date"], errors="coerce")
-    searches["forecast_month"] = forecast_day.dt.strftime("%Y-%m")
+    searches["forecast_night_key"] = forecast_day.dt.strftime("%Y-%m-%d")
+    searches["forecast_night"] = forecast_day.dt.strftime("%d %b %Y")
     if "searched_at" in searches.columns:
         searched_day = pd.to_datetime(searches["searched_at"], utc=True, errors="coerce")
         searched_day = pd.to_datetime(searched_day.dt.strftime("%Y-%m-%d"))
@@ -505,8 +506,7 @@ if not destination_counts.empty:
     st.subheader("Searches by destination")
     st.caption(
         "Taller bars were searched more often. "
-        "This is only popularity, not whether the aurora was likely. "
-        "The same city is grouped, and the label is the official name when the place is found."
+        "This is only popularity, not whether the aurora was likely."
     )
     fig = px.bar(
         destination_counts,
@@ -644,25 +644,39 @@ if "cloud_cover" in scatter_data.columns and "aurora_probability" in scatter_dat
         add_missing_outcome_legend(fig)
         draw_chart(fig, show_legend=True, legend_title="Viewing outcome")
 
-month_outcomes = stacked_counts(searches, "forecast_month", "viewing_outcome")
-if not month_outcomes.empty:
-    st.subheader("Night of the year × viewing outcome")
+night_outcomes = stacked_counts(searches, "forecast_night", "viewing_outcome")
+if not night_outcomes.empty:
+    st.subheader("Forecast night × viewing outcome")
     st.caption(
-        "Month is the forecast night (forecast_date), not when they clicked. "
+        "Each bar is the date they picked in the app, not when they clicked. "
         "Same viewing-outcome colours: purple = weak chance, violet = no forecast. "
-        "Darkness and polar day in the app depend on that date. "
-        "More sky_too_bright in summer months at high latitude is expected."
+        "Darkness and polar day in the app depend on that date."
     )
-    month_outcomes = month_outcomes.sort_values("forecast_month")
+    night_order = (
+        searches.dropna(subset=["forecast_night", "forecast_night_key"])
+        .drop_duplicates("forecast_night")
+        .sort_values("forecast_night_key")["forecast_night"]
+        .tolist()
+    )
+    night_outcomes["forecast_night"] = pd.Categorical(
+        night_outcomes["forecast_night"],
+        categories=night_order,
+        ordered=True
+    )
+    night_outcomes = night_outcomes.sort_values("forecast_night")
     fig = px.bar(
-        month_outcomes,
-        x="forecast_month",
+        night_outcomes,
+        x="forecast_night",
         y="searches",
         color="viewing_outcome",
         color_discrete_map=OUTCOME_COLORS,
         barmode="stack",
-        category_orders={"viewing_outcome": list(OUTCOME_COLORS.keys())}
+        category_orders={
+            "forecast_night": night_order,
+            "viewing_outcome": list(OUTCOME_COLORS.keys())
+        }
     )
+    fig.update_xaxes(type="category", title="Forecast night")
     add_missing_outcome_legend(fig)
     draw_chart(fig, show_legend=True, legend_title="Viewing outcome")
 
