@@ -11,28 +11,55 @@
 
 ## Index
 
-**The forecast app** — [Demo](#app-demo) · [Overview](#project-overview) · [Problem](#problem-statement) · [Goal](#project-goal) · [Research question](#main-research-question) · [Users](#target-users)
+[![Forecast app](https://img.shields.io/badge/Forecast_app-Demo-2f7468?style=for-the-badge)](#app-demo)
+[![Forecast app](https://img.shields.io/badge/Forecast_app-Overview-2f7468?style=for-the-badge)](#project-overview)
+[![Forecast app](https://img.shields.io/badge/Forecast_app-Problem-2f7468?style=for-the-badge)](#problem-statement)
+[![Forecast app](https://img.shields.io/badge/Forecast_app-Goal-2f7468?style=for-the-badge)](#project-goal)
+[![Forecast app](https://img.shields.io/badge/Forecast_app-Research_question-2f7468?style=for-the-badge)](#main-research-question)
+[![Forecast app](https://img.shields.io/badge/Forecast_app-Users-2f7468?style=for-the-badge)](#target-users)
 
-**Science** — [The science](#the-science-behind-the-project) · [How it connects](#the-logic-that-connects-everything-together)
+[![Science](https://img.shields.io/badge/Science-The_science-2f7468?style=for-the-badge)](#the-science-behind-the-project)
+[![Science](https://img.shields.io/badge/Science-How_it_connects-2f7468?style=for-the-badge)](#the-logic-that-connects-everything-together)
 
-**Data and ML** — [Historical data](#historical-data) · [Data integration](#data-integration) · [Why Dst](#why-dst-was-selected-as-the-target) · [Regression](#regression-problem) · [EDA](#exploratory-data-analysis) · [Preprocessing](#data-preprocessing) · [Machine learning](#machine-learning)
+[![Data and ML](https://img.shields.io/badge/Data_and_ML-Historical_data-2f7468?style=for-the-badge)](#historical-data)
+[![Data and ML](https://img.shields.io/badge/Data_and_ML-Data_integration-2f7468?style=for-the-badge)](#data-integration)
+[![Data and ML](https://img.shields.io/badge/Data_and_ML-Why_Dst-2f7468?style=for-the-badge)](#why-dst-was-selected-as-the-target)
+[![Data and ML](https://img.shields.io/badge/Data_and_ML-Regression-2f7468?style=for-the-badge)](#regression-problem)
+[![Data and ML](https://img.shields.io/badge/Data_and_ML-EDA-2f7468?style=for-the-badge)](#exploratory-data-analysis)
+[![Data and ML](https://img.shields.io/badge/Data_and_ML-Preprocessing-2f7468?style=for-the-badge)](#data-preprocessing)
+[![Data and ML](https://img.shields.io/badge/Data_and_ML-Machine_learning-2f7468?style=for-the-badge)](#machine-learning)
 
-**How the app decides** — [Today's AI estimate](#todays-ai-aurora-estimate) · [Observation chance](#estimated-observation-chance) · [Why ML is not used for future dates](#why-ml-is-used-for-current-conditions-but-not-future-dates) · [Auroral oval](#interactive-auroral-oval) · [Scientific coherence](#why-this-approach-is-scientifically-coherent)
+[![How the app decides](https://img.shields.io/badge/How_the_app_decides-Todays_AI_estimate-2f7468?style=for-the-badge)](#todays-ai-aurora-estimate)
+[![How the app decides](https://img.shields.io/badge/How_the_app_decides-Observation_chance-2f7468?style=for-the-badge)](#estimated-observation-chance)
+[![How the app decides](https://img.shields.io/badge/How_the_app_decides-Why_not_future_ML-2f7468?style=for-the-badge)](#why-ml-is-used-for-current-conditions-but-not-future-dates)
+[![How the app decides](https://img.shields.io/badge/How_the_app_decides-Auroral_oval-2f7468?style=for-the-badge)](#interactive-auroral-oval)
+[![How the app decides](https://img.shields.io/badge/How_the_app_decides-Scientific_coherence-2f7468?style=for-the-badge)](#why-this-approach-is-scientifically-coherent)
 
-**Build** — [Workflow](#project-workflow) · [APIs](#apis) · [Data sources](#data-sources) · [Streamlit](#streamlit-application) · [Technologies](#technologies) · [MVP](#minimum-viable-product) · [Success criteria](#success-criteria)
+[![How I built it](https://img.shields.io/badge/How_I_built_it-Workflow-2f7468?style=for-the-badge)](#project-workflow)
+[![How I built it](https://img.shields.io/badge/How_I_built_it-APIs-2f7468?style=for-the-badge)](#apis)
+[![How I built it](https://img.shields.io/badge/How_I_built_it-Data_sources-2f7468?style=for-the-badge)](#data-sources)
+[![How I built it](https://img.shields.io/badge/How_I_built_it-Streamlit-2f7468?style=for-the-badge)](#streamlit-application)
+[![How I built it](https://img.shields.io/badge/How_I_built_it-Technologies-2f7468?style=for-the-badge)](#technologies)
+[![How I built it](https://img.shields.io/badge/How_I_built_it-MVP-2f7468?style=for-the-badge)](#minimum-viable-product)
+[![How I built it](https://img.shields.io/badge/How_I_built_it-Success_criteria-2f7468?style=for-the-badge)](#success-criteria)
 
-**Data Analytics extension** — [Activity tracker](#activity-tracker) · [SQL Example](#sql-example)
+[![Data Analytics](https://img.shields.io/badge/Data_Analytics-Activity_tracker-2f7468?style=for-the-badge)](#activity-tracker)
+[![Data Analytics](https://img.shields.io/badge/Data_Analytics-SQL_search_log-2f7468?style=for-the-badge)](#sql-log)
+[![Data Analytics](https://img.shields.io/badge/Data_Analytics-SQL_Example-2f7468?style=for-the-badge)](#sql-example)
 
-**Close** — [Future improvements](#future-improvements) · [Project links](#project-links)
+[![Close](https://img.shields.io/badge/Close-Future_improvements-2f7468?style=for-the-badge)](#future-improvements)
+[![Close](https://img.shields.io/badge/Close-Project_links-2f7468?style=for-the-badge)](#project-links)
 
 ---
 
+<a id="app-demo"></a>
 # 📱 App Demo
 
 <img src="assets/app-demo.gif" width="280" alt="App Demo">
 
 ---
 
+<a id="project-overview"></a>
 # 🌠 Project Overview
 
 Aurora Forecast is an **end-to-end decision support application** that integrates Machine Learning with multiple real-time and forecast APIs.
@@ -47,6 +74,7 @@ The goal is to transform complex space weather and environmental information int
 
 ---
 
+<a id="problem-statement"></a>
 # ❓ Problem Statement
 
 People who want to see the Northern Lights often need to consult multiple sources of information:
@@ -63,6 +91,7 @@ The goal of this project is to simplify that process by bringing these factors t
 
 ---
 
+<a id="project-goal"></a>
 # 🎯 Project Goal
 
 The goal is to develop an end-to-end Machine Learning project that predicts **current geomagnetic storm intensity** using real-time space weather data and integrates this prediction into a Streamlit application.
@@ -87,12 +116,14 @@ Future forecasts are handled separately using forecast geomagnetic activity (`Ap
 
 ---
 
+<a id="main-research-question"></a>
 # 🔬 Main Research Question
 
 > ## Can data help users identify the best conditions to observe the Northern Lights?
 
 ---
 
+<a id="target-users"></a>
 # 👥 Target Users
 
 - ✈️ Travelers
@@ -102,6 +133,7 @@ Future forecasts are handled separately using forecast geomagnetic activity (`Ap
 
 ---
 
+<a id="the-science-behind-the-project"></a>
 # ☀️ The Science Behind the Project
 
 ## 🌞 Step 1 — The Sun
@@ -192,6 +224,7 @@ That's why the application separates **current geomagnetic activity** from **fut
 
 ---
 
+<a id="the-logic-that-connects-everything-together"></a>
 # 🔗 The Logic That Connects Everything Together
 
 There are **two complementary forecasting systems** inside the application.
@@ -248,6 +281,7 @@ Future observation chances are calculated separately using forecast and environm
 
 ---
 
+<a id="historical-data"></a>
 # 📊 Historical Data
 
 The Machine Learning workflow uses three historical datasets from NASA's Space Weather collection.
@@ -294,6 +328,7 @@ smoothed_ssn
 
 ---
 
+<a id="data-integration"></a>
 # 🔄 Data Integration
 
 The three datasets have different time resolutions, so they must first be aligned.
@@ -354,6 +389,7 @@ Dst
 
 ---
 
+<a id="why-dst-was-selected-as-the-target"></a>
 # 🎯 Why Dst Was Selected as the Target
 
 The **Dst Index** was selected because it represents Earth's actual geomagnetic response to incoming space weather conditions.
@@ -378,6 +414,7 @@ For example:
 
 Therefore, this project is a:
 
+<a id="regression-problem"></a>
 # 📈 Regression Problem
 
 The objective is:
@@ -394,6 +431,7 @@ that would instead be a **classification problem**.
 
 ---
 
+<a id="exploratory-data-analysis"></a>
 # 🔎 Exploratory Data Analysis
 
 The EDA focuses on understanding both the target variable and its relationship with the space weather features.
@@ -408,6 +446,7 @@ Main objectives:
 
 ---
 
+<a id="data-preprocessing"></a>
 # ⚙️ Data Preprocessing
 
 Before training the models, the integrated dataset goes through:
@@ -419,6 +458,7 @@ Before training the models, the integrated dataset goes through:
 
 ---
 
+<a id="machine-learning"></a>
 # 🤖 Machine Learning
 
 The project follows a complete supervised regression workflow:
@@ -462,6 +502,7 @@ The final trained model is saved and later loaded by the Streamlit application.
 
 ---
 
+<a id="todays-ai-aurora-estimate"></a>
 # 🤖 Today's AI Aurora Estimate
 
 > **Based on a Machine Learning prediction.**
@@ -494,6 +535,7 @@ Predicted Current Dst
 
 ---
 
+<a id="estimated-observation-chance"></a>
 # 🌌 Estimated Observation Chance
 
 > **Based on a rule-based calculation, not a Machine Learning prediction.**
@@ -526,6 +568,7 @@ These factors are combined to produce an:
 
 ---
 
+<a id="why-ml-is-used-for-current-conditions-but-not-future-dates"></a>
 # 💡 Why ML Is Used for Current Conditions but Not Future Dates
 
 The initial idea was to combine the Machine Learning model directly with forecast APIs to predict Dst for future dates.
@@ -564,6 +607,7 @@ This allows the Machine Learning model to remain aligned with the data on which 
 
 ---
 
+<a id="interactive-auroral-oval"></a>
 # 🗺️ Interactive Auroral Oval
 
 The application also integrates NOAA's auroral oval forecast.
@@ -584,6 +628,7 @@ The final application therefore contains three complementary components:
 
 ---
 
+<a id="why-this-approach-is-scientifically-coherent"></a>
 # ❤️ Why This Approach Is Scientifically Coherent
 
 A tempting approach would be to train a model that directly predicts:
@@ -630,6 +675,7 @@ This keeps the Machine Learning problem aligned with the available historical da
 
 ---
 
+<a id="project-workflow"></a>
 # 📓 Project Workflow
 
 ## `Aurora_Forecast.ipynb`
@@ -694,7 +740,6 @@ Final Streamlit Application
 ---
 
 <a id="apis"></a>
-
 # 🌐 Real-Time & Forecast APIs
 
 | API | Purpose |
@@ -710,6 +755,7 @@ Final Streamlit Application
 
 ---
 
+<a id="data-sources"></a>
 # 📚 Data Sources
 
 ### Historical Machine Learning Data
@@ -724,6 +770,7 @@ https://www.drivendata.org/competitions/73/noaa-magnetic-forecasting/page/280/
 
 ---
 
+<a id="streamlit-application"></a>
 # 🖥️ Streamlit Application
 
 The application functions similarly to an aurora weather forecast.
@@ -740,6 +787,7 @@ The user can:
 
 ---
 
+<a id="technologies"></a>
 # 🛠️ Technologies
 
 - Python
@@ -766,6 +814,7 @@ The user can:
 
 ---
 
+<a id="minimum-viable-product"></a>
 # ✅ Minimum Viable Product
 
 The final MVP includes:
@@ -785,6 +834,7 @@ The final MVP includes:
 
 ---
 
+<a id="success-criteria"></a>
 # 🏆 Success Criteria
 
 The project is considered successful if it:
@@ -799,7 +849,6 @@ The project is considered successful if it:
 ---
 
 <a id="activity-tracker"></a>
-
 # 📊 Data Analytics: Aurora App Activity Tracker (Neon + Cursor)
 
 [![Data Analytics: Aurora App Activity Tracker](https://img.shields.io/badge/Data_Analytics:_Aurora_App_Activity_Tracker-Trello-2f7468?style=for-the-badge)](https://trello.com/b/c1QcoQgA/aurora-activity-tracker-with-neon-cursor-project)
@@ -825,7 +874,6 @@ The dashboard answers two questions:
 ---
 
 <a id="sql-log"></a>
-
 # 🗄️ SQL for the anonymous search log (Neon)
 
 Each click of **Generate Aurora Forecast** stores one anonymous row in Neon PostgreSQL. The forecast screen does not change. If the database is down, the forecast still works.
@@ -905,6 +953,7 @@ WHERE sky_too_bright = TRUE;
 
 ---
 
+<a id="future-improvements"></a>
 # 🚀 Future Improvements
 
 Potential future developments include:
@@ -919,6 +968,7 @@ Potential future developments include:
 
 ---
 
+<a id="project-links"></a>
 # 🔗 Project Links
 
 [![Live Application](https://img.shields.io/badge/Live_Application-Streamlit-2f7468?style=for-the-badge)](https://northern-lights-forecast.streamlit.app)
