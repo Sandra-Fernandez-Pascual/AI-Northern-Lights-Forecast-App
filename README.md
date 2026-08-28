@@ -840,7 +840,7 @@ The app reads Streamlit Secrets only. `.env.sample` is a placeholder for GitHub 
 
 The **Search Activity for Data Analytics** button (bottom-right on desktop) opens the dashboard for the same table.
 
-## Example SQL
+## SQL Example
 
 ```sql
 -- Latest searches
