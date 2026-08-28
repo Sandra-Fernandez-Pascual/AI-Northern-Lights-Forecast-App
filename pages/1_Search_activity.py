@@ -576,8 +576,7 @@ if probability.notna().any():
         "Each bar counts searches in that probability range. "
         "Mint = 20% or more (same as a favourable night). "
         "Purple = under 20% (weak). "
-        "A pile of purple on the left means most clicks were weak nights. "
-        "The legend always shows both colours, even if nobody has hit 20% yet."
+        "A pile of purple on the left means most clicks were weak nights."
     )
     hist_values = probability.dropna()
     hist_bins = pd.cut(hist_values, bins=10)
@@ -623,7 +622,6 @@ if "cloud_cover" in scatter_data.columns and "aurora_probability" in scatter_dat
             "The best nights would sit up and left (strong aurora, clearer sky). "
             "Dots at the bottom are already weak nights, so clouds are a second problem. "
             "Colour is the viewing outcome. "
-            "The legend always lists all four types. "
             "If almost every dot is purple, most nights were under 20%."
         )
         hover = [
