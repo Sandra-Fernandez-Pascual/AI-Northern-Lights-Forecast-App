@@ -1096,7 +1096,7 @@ def estimate_aurora_probability(
 # -----------------------------
 
 st.set_page_config(
-    page_title="ML-powered Northern Lights Predictor",
+    page_title="Northern Lights Predictor",
     page_icon="🌌",
     layout="wide",
     initial_sidebar_state="auto"
@@ -1553,7 +1553,7 @@ hr {
     line-height: 1.5;
 }
 
-/* ---------- ML Aurora Estimate ---------- */
+/* ---------- Machine Learning Aurora Estimate ---------- */
 
 .ml-card {
     background:
@@ -1862,15 +1862,14 @@ except Exception:
 # -----------------------------
 # Application Header
 # -----------------------------
-st.title("🌌 ML-powered Northern Lights Predictor")
+st.title("🌌 Northern Lights Predictor")
 
 st.markdown("""
 <div class="aurora-header">
     <div class="aurora-eyebrow">AURORA FORECAST</div>
     <h1>Chase the Northern Lights</h1>
     <p>
-        Machine Learning-powered aurora forecasts combining space weather,
-        atmospheric conditions and real-time solar data.
+        Choose a destination and date to generate your forecast.
     </p>
 </div>
 """, unsafe_allow_html=True)
@@ -2138,6 +2137,10 @@ if result is not None:
     )
 
     st.subheader("Estimated chance of observing the Northern Lights")
+    st.caption(
+        "Observation chance from forecast space weather (Ap), location, "
+        "sky darkness, cloud cover and visibility."
+    )
 
     if result["probability"] < 20:
         st.warning(
@@ -2162,11 +2165,6 @@ if result is not None:
                 label="Best Viewing Time",
                 value=result["best_time"]
             )
-
-    st.caption(
-        "Estimation based on forecast geomagnetic activity (Ap), "
-        "location, sky darkness, cloud cover and visibility."
-    )
 
     st.markdown("---")
 
@@ -2259,13 +2257,16 @@ if result is not None:
     st.markdown("---")
 
 # -----------------------------------------------------
-# Today's ML Aurora Forecast
+# Today's Machine Learning Aurora Forecast
 # -----------------------------------------------------
 
-st.subheader("Today's ML Aurora Estimate")
+st.subheader("Today's Machine Learning Aurora Estimate")
+st.caption(
+    "Machine Learning model from real-time solar wind and magnetic field measurements."
+)
 
 if prediction is None:
-    st.warning("Real-time ML estimate temporarily unavailable.")
+    st.warning("Real-time Machine Learning estimate temporarily unavailable.")
 
 else:
 
@@ -2286,7 +2287,7 @@ else:
 
     st.markdown(f"""
     <div class="ml-card">
-    <div class="ml-label">REAL-TIME ML ESTIMATE</div>
+    <div class="ml-label">REAL-TIME MACHINE LEARNING ESTIMATE</div>
 
     <div class="ml-status">{aurora_status}</div>
 
@@ -2294,8 +2295,6 @@ else:
 
     <div class="ml-caption">
     Predicted Dst Index
-    <br><br>
-    This ML estimate is based on current real-time solar wind and magnetic field measurements.
     <br><br>
     More negative Dst values usually indicate stronger geomagnetic storms and better aurora potential.
     </div>
