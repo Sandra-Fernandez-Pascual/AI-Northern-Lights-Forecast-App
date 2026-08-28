@@ -1,4 +1,4 @@
-# 🌌 AI-powered Northern Lights Predictor
+# 🌌 ML-powered Northern Lights Predictor
 
 ### Aurora Forecast: When Are the Best Conditions to See the Northern Lights?
 
@@ -18,7 +18,7 @@
 
 **Data and ML** — [Historical data](#historical-data) · [Data integration](#data-integration) · [Why Dst](#why-dst-was-selected-as-the-target) · [Regression](#regression-problem) · [EDA](#exploratory-data-analysis) · [Preprocessing](#data-preprocessing) · [Machine learning](#machine-learning)
 
-**How the app decides** — [Today's AI estimate](#todays-ai-aurora-estimate) · [Observation chance](#estimated-observation-chance) · [Why ML is not used for future dates](#why-ml-is-used-for-current-conditions-but-not-future-dates) · [Auroral oval](#interactive-auroral-oval) · [Scientific coherence](#why-this-approach-is-scientifically-coherent)
+**How the app decides** — [Today's ML estimate](#todays-ml-aurora-estimate) · [Observation chance](#estimated-observation-chance) · [Why ML is not used for future dates](#why-ml-is-used-for-current-conditions-but-not-future-dates) · [Auroral oval](#interactive-auroral-oval) · [Scientific coherence](#why-this-approach-is-scientifically-coherent)
 
 **How I built it** — [Workflow](#project-workflow) · [APIs](#apis) · [Data sources](#data-sources) · [Streamlit](#streamlit-application) · [Technologies](#technologies) · [MVP](#minimum-viable-product) · [Success criteria](#success-criteria)
 
@@ -44,7 +44,7 @@ Aurora Forecast is an **end-to-end decision support application** that integrate
 
 The application provides:
 
-- 🤖 A real-time AI estimate of current geomagnetic conditions
+- 🤖 A real-time ML estimate of current geomagnetic conditions
 - 🌌 A personalized Northern Lights observation forecast
 - 🗺️ An interactive visualization of NOAA's auroral oval
 
@@ -86,7 +86,7 @@ The Machine Learning model therefore predicts the resulting geomagnetic storm in
 
 This prediction becomes:
 
-### 🤖 Today's AI Aurora Estimate
+### 🤖 Today's ML Aurora Estimate
 
 Future forecasts are handled separately using forecast geomagnetic activity (`Ap`), geographic location, darkness and atmospheric conditions: 
 
@@ -220,7 +220,7 @@ There are **two complementary forecasting systems** inside the application.
         ↓
 🌍 Predicted Current Dst
         ↓
-🌌 Today's AI Aurora Estimate
+🌌 Today's ML Aurora Estimate
 ```
 
 The Machine Learning model answers:
@@ -480,8 +480,8 @@ The final trained model is saved and later loaded by the Streamlit application.
 
 ---
 
-<a id="todays-ai-aurora-estimate"></a>
-# 🤖 Today's AI Aurora Estimate
+<a id="todays-ml-aurora-estimate"></a>
+# 🤖 Today's ML Aurora Estimate
 
 > **Based on a Machine Learning prediction.**
 
@@ -508,7 +508,7 @@ Random Forest
         ↓
 Predicted Current Dst
         ↓
-🤖 Today's AI Aurora Estimate
+🤖 Today's ML Aurora Estimate
 ```
 
 ---
@@ -597,7 +597,7 @@ This provides an interactive visualization of where auroral activity is expected
 The final application therefore contains three complementary components:
 
 ```text
-🤖 Today's AI Aurora Estimate
+🤖 Today's ML Aurora Estimate
               +
 🌌 Estimated Observation Chance
               +
@@ -710,7 +710,7 @@ Explore & Integrate External APIs
 ```text
 Final Streamlit Application
 │
-├── 🤖 Today's AI Aurora Estimate
+├── 🤖 Today's ML Aurora Estimate
 ├── 🌌 Estimated Observation Chance
 └── 🗺️ Interactive Auroral Oval
 ```
@@ -760,7 +760,7 @@ The user can:
 - 🌐 Retrieve space weather and environmental data
 - 🌌 Receive an Estimated Observation Chance
 - ☁️ Explore the conditions influencing the forecast
-- 🤖 View Today's AI Aurora Estimate
+- 🤖 View Today's ML Aurora Estimate
 - 🗺️ Explore NOAA's auroral oval
 
 ---
@@ -806,7 +806,7 @@ The final MVP includes:
 - Hyperparameter tuning
 - Real-time API integration
 - Streamlit application
-- Today's AI Aurora Estimate
+- Today's ML Aurora Estimate
 - Personalized forecast for a selected location and date
 - Interactive NOAA auroral oval visualization
 
@@ -939,7 +939,7 @@ Potential future developments include:
 - ⏱️ Hourly aurora intensity forecasts for future dates
 - 🔔 Push notifications
 - ✈️ Travel recommendations
-- 🔍 Explainable AI
+- 🔍 Explainable ML
 - 🤖 Exploring approaches for extending the Machine Learning model from real-time estimation to future geomagnetic forecasting
 - SQL for the anonymous search log (Neon Cloud PostgreSQL database) — done
 - Search activity dashboard — done
