@@ -11,44 +11,19 @@
 
 ## Index
 
-[![Forecast app](https://img.shields.io/badge/Forecast_app-Demo-2f7468?style=for-the-badge)](#app-demo)
-[![Forecast app](https://img.shields.io/badge/Forecast_app-Overview-2f7468?style=for-the-badge)](#project-overview)
-[![Forecast app](https://img.shields.io/badge/Forecast_app-Problem-2f7468?style=for-the-badge)](#problem-statement)
-[![Forecast app](https://img.shields.io/badge/Forecast_app-Goal-2f7468?style=for-the-badge)](#project-goal)
-[![Forecast app](https://img.shields.io/badge/Forecast_app-Research_question-2f7468?style=for-the-badge)](#main-research-question)
-[![Forecast app](https://img.shields.io/badge/Forecast_app-Users-2f7468?style=for-the-badge)](#target-users)
+**The forecast app** — <a href="#app-demo" style="color:#2f7468">Demo</a> · <a href="#project-overview" style="color:#2f7468">Overview</a> · <a href="#problem-statement" style="color:#2f7468">Problem</a> · <a href="#project-goal" style="color:#2f7468">Goal</a> · <a href="#main-research-question" style="color:#2f7468">Research question</a> · <a href="#target-users" style="color:#2f7468">Users</a>
 
-[![Science](https://img.shields.io/badge/Science-The_science-2f7468?style=for-the-badge)](#the-science-behind-the-project)
-[![Science](https://img.shields.io/badge/Science-How_it_connects-2f7468?style=for-the-badge)](#the-logic-that-connects-everything-together)
+**Science** — <a href="#the-science-behind-the-project" style="color:#2f7468">The science</a> · <a href="#the-logic-that-connects-everything-together" style="color:#2f7468">How it connects</a>
 
-[![Data and ML](https://img.shields.io/badge/Data_and_ML-Historical_data-2f7468?style=for-the-badge)](#historical-data)
-[![Data and ML](https://img.shields.io/badge/Data_and_ML-Data_integration-2f7468?style=for-the-badge)](#data-integration)
-[![Data and ML](https://img.shields.io/badge/Data_and_ML-Why_Dst-2f7468?style=for-the-badge)](#why-dst-was-selected-as-the-target)
-[![Data and ML](https://img.shields.io/badge/Data_and_ML-Regression-2f7468?style=for-the-badge)](#regression-problem)
-[![Data and ML](https://img.shields.io/badge/Data_and_ML-EDA-2f7468?style=for-the-badge)](#exploratory-data-analysis)
-[![Data and ML](https://img.shields.io/badge/Data_and_ML-Preprocessing-2f7468?style=for-the-badge)](#data-preprocessing)
-[![Data and ML](https://img.shields.io/badge/Data_and_ML-Machine_learning-2f7468?style=for-the-badge)](#machine-learning)
+**Data and ML** — <a href="#historical-data" style="color:#2f7468">Historical data</a> · <a href="#data-integration" style="color:#2f7468">Data integration</a> · <a href="#why-dst-was-selected-as-the-target" style="color:#2f7468">Why Dst</a> · <a href="#regression-problem" style="color:#2f7468">Regression</a> · <a href="#exploratory-data-analysis" style="color:#2f7468">EDA</a> · <a href="#data-preprocessing" style="color:#2f7468">Preprocessing</a> · <a href="#machine-learning" style="color:#2f7468">Machine learning</a>
 
-[![How the app decides](https://img.shields.io/badge/How_the_app_decides-Todays_AI_estimate-2f7468?style=for-the-badge)](#todays-ai-aurora-estimate)
-[![How the app decides](https://img.shields.io/badge/How_the_app_decides-Observation_chance-2f7468?style=for-the-badge)](#estimated-observation-chance)
-[![How the app decides](https://img.shields.io/badge/How_the_app_decides-Why_not_future_ML-2f7468?style=for-the-badge)](#why-ml-is-used-for-current-conditions-but-not-future-dates)
-[![How the app decides](https://img.shields.io/badge/How_the_app_decides-Auroral_oval-2f7468?style=for-the-badge)](#interactive-auroral-oval)
-[![How the app decides](https://img.shields.io/badge/How_the_app_decides-Scientific_coherence-2f7468?style=for-the-badge)](#why-this-approach-is-scientifically-coherent)
+**How the app decides** — <a href="#todays-ai-aurora-estimate" style="color:#2f7468">Today's AI estimate</a> · <a href="#estimated-observation-chance" style="color:#2f7468">Observation chance</a> · <a href="#why-ml-is-used-for-current-conditions-but-not-future-dates" style="color:#2f7468">Why ML is not used for future dates</a> · <a href="#interactive-auroral-oval" style="color:#2f7468">Auroral oval</a> · <a href="#why-this-approach-is-scientifically-coherent" style="color:#2f7468">Scientific coherence</a>
 
-[![How I built it](https://img.shields.io/badge/How_I_built_it-Workflow-2f7468?style=for-the-badge)](#project-workflow)
-[![How I built it](https://img.shields.io/badge/How_I_built_it-APIs-2f7468?style=for-the-badge)](#apis)
-[![How I built it](https://img.shields.io/badge/How_I_built_it-Data_sources-2f7468?style=for-the-badge)](#data-sources)
-[![How I built it](https://img.shields.io/badge/How_I_built_it-Streamlit-2f7468?style=for-the-badge)](#streamlit-application)
-[![How I built it](https://img.shields.io/badge/How_I_built_it-Technologies-2f7468?style=for-the-badge)](#technologies)
-[![How I built it](https://img.shields.io/badge/How_I_built_it-MVP-2f7468?style=for-the-badge)](#minimum-viable-product)
-[![How I built it](https://img.shields.io/badge/How_I_built_it-Success_criteria-2f7468?style=for-the-badge)](#success-criteria)
+**How I built it** — <a href="#project-workflow" style="color:#2f7468">Workflow</a> · <a href="#apis" style="color:#2f7468">APIs</a> · <a href="#data-sources" style="color:#2f7468">Data sources</a> · <a href="#streamlit-application" style="color:#2f7468">Streamlit</a> · <a href="#technologies" style="color:#2f7468">Technologies</a> · <a href="#minimum-viable-product" style="color:#2f7468">MVP</a> · <a href="#success-criteria" style="color:#2f7468">Success criteria</a>
 
-[![Data Analytics](https://img.shields.io/badge/Data_Analytics-Activity_tracker-2f7468?style=for-the-badge)](#activity-tracker)
-[![Data Analytics](https://img.shields.io/badge/Data_Analytics-SQL_search_log-2f7468?style=for-the-badge)](#sql-log)
-[![Data Analytics](https://img.shields.io/badge/Data_Analytics-SQL_Example-2f7468?style=for-the-badge)](#sql-example)
+**Data Analytics extension** — <a href="#activity-tracker" style="color:#2f7468">Activity tracker</a> · <a href="#sql-log" style="color:#2f7468">SQL search log</a> · <a href="#sql-example" style="color:#2f7468">SQL Example</a>
 
-[![Close](https://img.shields.io/badge/Close-Future_improvements-2f7468?style=for-the-badge)](#future-improvements)
-[![Close](https://img.shields.io/badge/Close-Project_links-2f7468?style=for-the-badge)](#project-links)
+**Close** — <a href="#future-improvements" style="color:#2f7468">Future improvements</a> · <a href="#project-links" style="color:#2f7468">Project links</a>
 
 ---
 
