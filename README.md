@@ -9,21 +9,24 @@
 [![Project Planning](https://img.shields.io/badge/Project_Planning-Trello-2f7468?style=for-the-badge)](https://trello.com/b/Q96iavWk/northern-lights-final-project-ironhack)
 [![Data Analytics extension: Aurora App Activity Tracker](https://img.shields.io/badge/Data_Analytics_extension:_Aurora_App_Activity_Tracker-README-2f7468?style=for-the-badge)](#activity-tracker)
 
-## Index
+<details>
+<summary><strong>Index</strong></summary>
 
-**The forecast app** — <a href="#app-demo" style="color:#2f7468">Demo</a> · <a href="#project-overview" style="color:#2f7468">Overview</a> · <a href="#problem-statement" style="color:#2f7468">Problem</a> · <a href="#project-goal" style="color:#2f7468">Goal</a> · <a href="#main-research-question" style="color:#2f7468">Research question</a> · <a href="#target-users" style="color:#2f7468">Users</a>
+**The forecast app** — [Demo](#app-demo) · [Overview](#project-overview) · [Problem](#problem-statement) · [Goal](#project-goal) · [Research question](#main-research-question) · [Users](#target-users)
 
-**Science** — <a href="#the-science-behind-the-project" style="color:#2f7468">The science</a> · <a href="#the-logic-that-connects-everything-together" style="color:#2f7468">How it connects</a>
+**Science** — [The science](#the-science-behind-the-project) · [How it connects](#the-logic-that-connects-everything-together)
 
-**Data and ML** — <a href="#historical-data" style="color:#2f7468">Historical data</a> · <a href="#data-integration" style="color:#2f7468">Data integration</a> · <a href="#why-dst-was-selected-as-the-target" style="color:#2f7468">Why Dst</a> · <a href="#regression-problem" style="color:#2f7468">Regression</a> · <a href="#exploratory-data-analysis" style="color:#2f7468">EDA</a> · <a href="#data-preprocessing" style="color:#2f7468">Preprocessing</a> · <a href="#machine-learning" style="color:#2f7468">Machine learning</a>
+**Data and ML** — [Historical data](#historical-data) · [Data integration](#data-integration) · [Why Dst](#why-dst-was-selected-as-the-target) · [Regression](#regression-problem) · [EDA](#exploratory-data-analysis) · [Preprocessing](#data-preprocessing) · [Machine learning](#machine-learning)
 
-**How the app decides** — <a href="#todays-ai-aurora-estimate" style="color:#2f7468">Today's AI estimate</a> · <a href="#estimated-observation-chance" style="color:#2f7468">Observation chance</a> · <a href="#why-ml-is-used-for-current-conditions-but-not-future-dates" style="color:#2f7468">Why ML is not used for future dates</a> · <a href="#interactive-auroral-oval" style="color:#2f7468">Auroral oval</a> · <a href="#why-this-approach-is-scientifically-coherent" style="color:#2f7468">Scientific coherence</a>
+**How the app decides** — [Today's AI estimate](#todays-ai-aurora-estimate) · [Observation chance](#estimated-observation-chance) · [Why ML is not used for future dates](#why-ml-is-used-for-current-conditions-but-not-future-dates) · [Auroral oval](#interactive-auroral-oval) · [Scientific coherence](#why-this-approach-is-scientifically-coherent)
 
-**How I built it** — <a href="#project-workflow" style="color:#2f7468">Workflow</a> · <a href="#apis" style="color:#2f7468">APIs</a> · <a href="#data-sources" style="color:#2f7468">Data sources</a> · <a href="#streamlit-application" style="color:#2f7468">Streamlit</a> · <a href="#technologies" style="color:#2f7468">Technologies</a> · <a href="#minimum-viable-product" style="color:#2f7468">MVP</a> · <a href="#success-criteria" style="color:#2f7468">Success criteria</a>
+**How I built it** — [Workflow](#project-workflow) · [APIs](#apis) · [Data sources](#data-sources) · [Streamlit](#streamlit-application) · [Technologies](#technologies) · [MVP](#minimum-viable-product) · [Success criteria](#success-criteria)
 
-**Data Analytics extension** — <a href="#activity-tracker" style="color:#2f7468">Activity tracker</a> · <a href="#sql-log" style="color:#2f7468">SQL search log</a> · <a href="#sql-example" style="color:#2f7468">SQL Example</a>
+**Data Analytics extension** — [Activity tracker](#activity-tracker) · [SQL search log](#sql-log) · [SQL Example](#sql-example)
 
-**Close** — <a href="#future-improvements" style="color:#2f7468">Future improvements</a> · <a href="#project-links" style="color:#2f7468">Project links</a>
+**Close** — [Future improvements](#future-improvements) · [Project links](#project-links)
+
+</details>
 
 ---
 
