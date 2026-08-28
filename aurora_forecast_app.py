@@ -1866,10 +1866,10 @@ st.title("🌌 ML-powered Northern Lights Predictor")
 
 st.markdown("""
 <div class="aurora-header">
-    <div class="aurora-eyebrow">MACHINE LEARNING</div>
+    <div class="aurora-eyebrow">AURORA FORECAST</div>
     <h1>Chase the Northern Lights</h1>
     <p>
-        ML-powered aurora forecasts combining space weather,
+        Machine Learning-powered aurora forecasts combining space weather,
         atmospheric conditions and real-time solar data.
     </p>
 </div>
