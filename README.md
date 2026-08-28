@@ -21,7 +21,7 @@
 
 **Build** — [Workflow](#project-workflow) · [APIs](#apis) · [Data sources](#data-sources) · [Streamlit](#streamlit-application) · [Technologies](#technologies) · [MVP](#minimum-viable-product) · [Success criteria](#success-criteria)
 
-**Data Analytics extension** — [Activity tracker](#activity-tracker) · [SQL for the search log](#sql-log)
+**Data Analytics extension** — [Activity tracker](#activity-tracker) · [SQL Example](#sql-example)
 
 **Close** — [Future improvements](#future-improvements) · [Project links](#project-links)
 
@@ -859,6 +859,8 @@ NEON_DATABASE_URL = "postgresql://USER:PASSWORD@HOST/dbname?sslmode=require"
 The app reads Streamlit Secrets only. `.env.sample` is a placeholder for GitHub and is not loaded at runtime.
 
 The **Search Activity for Data Analytics** button (bottom-right on desktop) opens the dashboard for the same table.
+
+<a id="sql-example"></a>
 
 ## SQL Example
 
