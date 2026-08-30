@@ -33,7 +33,7 @@
 <a id="app-demo"></a>
 # 📱 App Demo
 
-<img src="assets/app-demo.gif" width="280" alt="App Demo">
+<img src="assets/app-demo.gif" width="360" alt="App Demo">
 
 ---
 
