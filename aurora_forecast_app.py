@@ -242,14 +242,22 @@ def get_space_weather_forecast(forecast_date):
 def get_environment(latitude, longitude, forecast_date):
 
     days_ahead = (forecast_date - date.today()).days
+    last_forecast_day = date.today() + timedelta(days=15)
+    used_forecast = False
 
     # ---------------------------------
     # 0–15 days: real weather forecast
+    # Open-Meteo only serves through today+15. Asking for the next
+    # calendar day as well used to 400 the whole call on day 15.
     # ---------------------------------
     if days_ahead <= 15:
 
         start_date = forecast_date.isoformat()
-        end_date = (forecast_date + timedelta(days=1)).isoformat()
+        end_day = min(
+            forecast_date + timedelta(days=1),
+            last_forecast_day
+        )
+        end_date = end_day.isoformat()
 
         url = (
             "https://api.open-meteo.com/v1/forecast"
@@ -263,48 +271,48 @@ def get_environment(latitude, longitude, forecast_date):
 
         data = _get_json(url)
 
-        if not data or "hourly" not in data or "time" not in data["hourly"]:
-            return None
+        if data and "hourly" in data and "time" in data["hourly"]:
 
-        hourly = data["hourly"]
-        times = hourly["time"]
-        clouds = hourly.get("cloud_cover") or [np.nan] * len(times)
-        visibility = hourly.get("visibility") or [np.nan] * len(times)
+            hourly = data["hourly"]
+            times = hourly["time"]
+            clouds = hourly.get("cloud_cover") or [np.nan] * len(times)
+            visibility = hourly.get("visibility") or [np.nan] * len(times)
 
-        weather_df = pd.DataFrame({
-            "time": pd.to_datetime(times),
-            "cloud_cover": clouds,
-            "visibility": visibility
-        })
-
-        weather_df = weather_df[
-            (
-                (weather_df["time"].dt.date == forecast_date) &
-                (weather_df["time"].dt.hour >= 21)
-            )
-            |
-            (
-                (weather_df["time"].dt.date == forecast_date + timedelta(days=1)) &
-                (weather_df["time"].dt.hour <= 3)
-            )
-        ].copy()
-
-        if weather_df.empty:
             weather_df = pd.DataFrame({
                 "time": pd.to_datetime(times),
                 "cloud_cover": clouds,
                 "visibility": visibility
             })
+
             weather_df = weather_df[
-                weather_df["time"].dt.date == forecast_date
+                (
+                    (weather_df["time"].dt.date == forecast_date) &
+                    (weather_df["time"].dt.hour >= 21)
+                )
+                |
+                (
+                    (weather_df["time"].dt.date == forecast_date + timedelta(days=1)) &
+                    (weather_df["time"].dt.hour <= 3)
+                )
             ].copy()
 
-        weather_source = "forecast"
+            if weather_df.empty:
+                weather_df = pd.DataFrame({
+                    "time": pd.to_datetime(times),
+                    "cloud_cover": clouds,
+                    "visibility": visibility
+                })
+                weather_df = weather_df[
+                    weather_df["time"].dt.date == forecast_date
+                ].copy()
+
+            weather_source = "forecast"
+            used_forecast = True
 
     # ---------------------------------
-    # 16–44 days: typical historical conditions
+    # 16–44 days, or forecast API failed: typical historical conditions
     # ---------------------------------
-    else:
+    if not used_forecast:
 
         historical_rows = []
 
