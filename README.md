@@ -2,7 +2,7 @@
 
 ### Aurora Forecast: When Are the Best Conditions to See the Northern Lights?
 
-**An end-to-end data science project that combines Machine Learning, real-time space weather data and environmental forecasts to help users identify favourable conditions for observing the Northern Lights.**
+**An end-to-end data science project that combines Machine Learning, real-time space weather data and environmental forecasts to provide current geomagnetic estimates and estimate the probability of observing the Northern Lights for a selected location and date.**
 
 [![Live App](https://img.shields.io/badge/Live_App-Streamlit-2f7468?style=for-the-badge)](https://northern-lights-forecast.streamlit.app)
 [![Final Presentation](https://img.shields.io/badge/Final_Presentation-Canva-2f7468?style=for-the-badge)](https://www.canva.com/design/DAHSKV9_810/SHlQImzLKEY5xYw1t5Kd4A/edit?ui=eyJBIjp7fX0)
