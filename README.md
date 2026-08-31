@@ -12,19 +12,27 @@
 <details>
 <summary><strong>Index</strong></summary>
 
-**The forecast app** — [Demo](#app-demo) · [Overview](#project-overview) · [Problem](#problem-statement) · [Goal](#project-goal) · [Research question](#main-research-question) · [Users](#target-users)
-
-**Science** — [The science](#the-science-behind-the-project) · [How it connects](#the-logic-that-connects-everything-together)
-
-**Data and Machine Learning** — [Historical data](#historical-data) · [Data integration](#data-integration) · [Why Dst](#why-dst-was-selected-as-the-target) · [Regression](#regression-problem) · [EDA](#exploratory-data-analysis) · [Preprocessing](#data-preprocessing) · [Machine learning](#machine-learning)
-
-**How the app decides** — [Today's Machine Learning estimate](#todays-ml-aurora-estimate) · [Observation chance](#estimated-observation-chance) · [Why Machine Learning is not used for future dates](#why-ml-is-used-for-current-conditions-but-not-future-dates) · [Auroral oval](#interactive-auroral-oval) · [Scientific coherence](#why-this-approach-is-scientifically-coherent)
-
-**How I built it** — [Workflow](#project-workflow) · [APIs](#apis) · [Data sources](#data-sources) · [Streamlit](#streamlit-application) · [Technologies](#technologies) · [MVP](#minimum-viable-product) · [Success criteria](#success-criteria)
-
-**Data Analytics extension** — [Activity tracker](#activity-tracker) · [SQL search log](#sql-log) · [SQL Example](#sql-example)
-
-**Close** — [Future improvements](#future-improvements) · [Project links](#project-links)
+<p>
+<strong>The forecast app</strong> — <a href="#app-demo">Demo</a> · <a href="#project-overview">Overview</a> · <a href="#problem-statement">Problem</a> · <a href="#project-goal">Goal</a> · <a href="#main-research-question">Research question</a> · <a href="#target-users">Users</a>
+</p>
+<p>
+<strong>Science</strong> — <a href="#the-science-behind-the-project">The science</a> · <a href="#the-logic-that-connects-everything-together">How it connects</a>
+</p>
+<p>
+<strong>Data and Machine Learning</strong> — <a href="#historical-data">Historical data</a> · <a href="#data-integration">Data integration</a> · <a href="#why-dst-was-selected-as-the-target">Why Dst</a> · <a href="#regression-problem">Regression</a> · <a href="#exploratory-data-analysis">EDA</a> · <a href="#data-preprocessing">Preprocessing</a> · <a href="#machine-learning">Machine learning</a>
+</p>
+<p>
+<strong>How the app decides</strong> — <a href="#todays-ml-aurora-estimate">Today's Machine Learning estimate</a> · <a href="#estimated-observation-chance">Observation chance</a> · <a href="#why-ml-is-used-for-current-conditions-but-not-future-dates">Why Machine Learning is not used for future dates</a> · <a href="#interactive-auroral-oval">Auroral oval</a> · <a href="#why-this-approach-is-scientifically-coherent">Scientific coherence</a>
+</p>
+<p>
+<strong>How I built it</strong> — <a href="#project-workflow">Workflow</a> · <a href="#apis">APIs</a> · <a href="#data-sources">Data sources</a> · <a href="#streamlit-application">Streamlit</a> · <a href="#technologies">Technologies</a> · <a href="#minimum-viable-product">MVP</a> · <a href="#success-criteria">Success criteria</a>
+</p>
+<p>
+<strong>Data Analytics extension</strong> — <a href="#activity-tracker">Activity tracker</a> · <a href="#sql-log">SQL search log</a> · <a href="#sql-example">SQL Example</a>
+</p>
+<p>
+<strong>Close</strong> — <a href="#future-improvements">Future improvements</a> · <a href="#project-links">Project links</a>
+</p>
 
 </details>
 
